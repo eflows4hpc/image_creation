@@ -1,0 +1,4 @@
+Flask
+Flask-HTTPAuth
+Flask-SQLAlchemy
+PyJWT

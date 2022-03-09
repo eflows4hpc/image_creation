@@ -1,0 +1,10 @@
+FROM %BASE_IMG%
+
+COPY %APPDIR% /%APPDIR%
+COPY software_repo /software_repo
+COPY .spack /root/.spack
+
+RUN  spack find && spack -e /%APPDIR% install && spack gc -y
+
+RUN  echo ". /opt/spack/share/spack/setup-env.sh && cd /%APPDIR% && spack env activate ." >> /etc/profile.d/z10_spack_environment.sh
+
