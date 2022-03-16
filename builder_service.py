@@ -57,9 +57,11 @@ def verify_password(username_or_token, password):
     if not user:
         # try to authenticate with username/password
         user = User.query.filter_by(username=username_or_token).first()
-        if not user 
-        
+        if not user:
+            flash("Username not found or token not valid")
+            return False       
         if not user.verify_password(password):
+            flash("Password incorrect")
             return False
     g.user = user
     return True
