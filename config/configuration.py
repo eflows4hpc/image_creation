@@ -23,4 +23,6 @@ build_cfg = {
 
 database = 'sqlite:///db.sqlite'
 port = 5000
+host = '0.0.0.0'
+application_root = 'image_creation'
 secret_key = '_put_here_the_secret_key'

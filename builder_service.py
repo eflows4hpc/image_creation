@@ -4,6 +4,8 @@ from flask import send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.serving import run_simple
+from werkzeug.wsgi import DispatcherMiddleware
 import jwt
 import logging
 import time
@@ -13,6 +15,7 @@ from image_builder.build import ImageBuilder
 
 
 app = Flask(__name__)
+app.config['APPLICATION_ROOT'] = configuration.application_root
 app.config['SECRET_KEY'] = configuration.secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = configuration.database
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
@@ -133,5 +136,12 @@ def check (id):
     except KeyError as e:
         abort(400, "Bad request: " + str(e))
 
+def simple(env, resp):
+    resp(b'200 OK', [(b'Content-Type', b'text/plain')])
+    return [b'Hello WSGI World']
+
+app.wsgi_app = DispatcherMiddleware(simple, {configuration.application_root: app.wsgi_app})
+
+
 if __name__ == '__main__':
-    app.run(port=configuration.port,debug=True, ssl_context='adhoc') 
+    app.run(host="0.0.0.0", port=configuration.port,debug=True, ssl_context='adhoc') 
