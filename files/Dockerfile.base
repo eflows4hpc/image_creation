@@ -1,5 +1,8 @@
 # Build stage with Spack pre-installed and ready to be used
-FROM spack/ubuntu-bionic:latest as builder
+
+FROM spack/ubuntu-bionic:latest
+
+LABEL org.opencontainers.image.source https://github.com/eflows4hpc/image_creation
 
 RUN apt-get update && apt-get install -y openjdk-8-jdk python3-dev uuid-runtime libtool automake build-essential vim && apt-get clean all && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y python && apt-get clean all && rm -rf /var/lib/apt/lists/*

@@ -1,5 +1,5 @@
 
-from flask import Flask, request, jsonify, abort, g
+from flask import Flask, flash, request, jsonify, abort, g
 from flask import send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
@@ -112,7 +112,14 @@ def build_Image ():
             singularity = True
         else:
             singularity = False   
-        build_id = builder.request_build(content['workflow'], content['step_id'], machine, singularity, force)
+        
+        workflow = content['workflow']
+        step_id = content['step_id']
+        if workflow == 'BASE' and step_id == 'BASE' :
+            workflow = None
+            step_id = None
+
+        build_id = builder.request_build(workflow, step_id, machine, singularity, force)
         return jsonify({"id" : build_id})
     except KeyError as e:
         abort(400, "Bad request: " + str(e))
@@ -127,4 +134,4 @@ def check (id):
         abort(400, "Bad request: " + str(e))
 
 if __name__ == '__main__':
-    app.run(port=5000,debug=True, ssl_context='adhoc') 
+    app.run(port=configuration.port,debug=True, ssl_context='adhoc') 

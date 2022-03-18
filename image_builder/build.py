@@ -24,12 +24,11 @@ class ImageBuilder:
     def __init__(self, repositories_cfg, builder_cfg, registry_cfg):
         self.executor=concurrent.futures.ThreadPoolExecutor(max_workers=builder_cfg['max_concurrent_builds'])
         self.builds= dict()
+        self.container_registry = registry_cfg
         self.workflow_repository = repositories_cfg["workflow_repository"]
         self.software_repository = repositories_cfg["software_repository"]
         self.spack_cfg = builder_cfg['spack_cfg']
-        self.base_image = builder_cfg['base_image']
-        #self.builder_cfg = builder_cfg
-        self.container_registry = registry_cfg
+        self.base_image = self.container_registry["images_prefix"] + builder_cfg['base_image']
         self.images_location = os.path.join(builder_cfg["tmp_folder"], "images")
         if not os.path.exists(self.images_location):
             os.makedirs(self.images_location)
@@ -37,6 +36,7 @@ class ImageBuilder:
         if not os.path.exists(self.builds_location):
             os.makedirs(self.builds_location)
         self.dockerfile_template =  os.path.join(builder_cfg["builder_home"], "files", builder_cfg["dockerfile"])
+        self.dockerfile_base =  os.path.join(builder_cfg["builder_home"], "files", "Dockerfile.base")
         self.builder_script = os.path.join(builder_cfg["builder_home"], "files", "run_build.sh")
         self.singularity_sudo = builder_cfg['singularity_sudo'] 
     
@@ -66,6 +66,17 @@ class ImageBuilder:
         print("Running build")
         utils.run_commands([' '.join(command)])
 
+    def _build_base_and_push(self, tmp_folder, image_id, machine):
+        #TODO: Check architecture and pass te corresponding build command (build or buildx)
+        os.makedirs(tmp_folder)
+        dockerfile = os.path.join(tmp_folder, "Dockerfile")
+        shutil.copy(self.dockerfile_base, dockerfile)
+        build_command = "build"
+        command = [self.builder_script, image_id, tmp_folder, machine['platform'],
+            self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command]
+        print("Running build")
+        utils.run_commands([' '.join(command)])
+
     def _to_singularity(self, image_id, singularity_image_path, built):
         if (not os.path.exists(singularity_image_path)) or built:
             if os.path.exists(singularity_image_path):
@@ -79,11 +90,14 @@ class ImageBuilder:
             else:
                 command = ['singularity', 'build', singularity_image_path ,source]
             utils.run_commands([' '.join(command)])
-
+    
     def _check_and_build(self, build_id, workflow, step_id, machine, singularity, force):
         current_build = self.builds[build_id]
         current_build.status=STARTED
-        image_id = self.container_registry["images_prefix"] + step_id + '_' + machine["architecture"]
+        if step_id is None:
+            image_id = self.base_image
+        else:
+            image_id = self.container_registry["images_prefix"] + step_id + '_' + machine["architecture"]
         current_build.image_id = image_id
         tmp_folder = os.path.join(self.builds_location, build_id)
         try:
@@ -103,7 +117,11 @@ class ImageBuilder:
             if rd is None:
                 print("IB: Building Image")
                 current_build.status = BUILDING
-                self._build_image_and_push(tmp_folder, workflow, step_id, image_id, machine)
+                if step_id is None:
+                    print("IB: Building Base Image")
+                    self._build_base_and_push(tmp_folder, image_id, machine)
+                else:
+                    self._build_image_and_push(tmp_folder, workflow, step_id, image_id, machine)
                 built=True
             else :
                 built=False

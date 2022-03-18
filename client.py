@@ -1,9 +1,15 @@
-from curses.ascii import HT
+
 import requests
 from requests.auth import HTTPBasicAuth
 import time
 ssl_verify = False
 url = "https://localhost:5000"
+
+js_base_build_request = js_build_request = {"machine": {"platform": "linux/amd64", "architecture": "skylake", "container_engine": "docker"},
+"workflow": "BASE",
+"step_id" : "BASE",
+"force": True}
+
 js_build_request = {"machine": {"platform": "linux/amd64", "architecture": "skylake", "container_engine": "singularity"},
 "workflow":"minimal_workflow",
 "step_id" :"wordcount",
@@ -18,7 +24,10 @@ token = res.json()['token']
 hed = {'Authorization': 'Bearer ' + token}
 print("Login successfull. Token:" + token)
 auth_u_p = HTTPBasicAuth(token,None)
-res = requests.post(url+'/build/', json=js_build_request, verify=ssl_verify, auth=auth_u_p)
+# build normal image
+# res = requests.post(url+'/build/', json=js_build_request, verify=ssl_verify, auth=auth_u_p)
+# build base image
+res = requests.post(url+'/build/', json=js_base_build_request, verify=ssl_verify, auth=auth_u_p)
 if res.ok:
     id = res.json()['id']
     print(" Submitted with id" + id)

@@ -1,7 +1,9 @@
 FROM %BASE_IMG%
 
+LABEL org.opencontainers.image.source https://github.com/eflows4hpc/image_creation
+
 COPY %APPDIR% /%APPDIR%
-COPY software_repo /software_repo
+COPY software_catalog /software_catalog
 COPY .spack /root/.spack
 
 RUN  spack find && spack -e /%APPDIR% install && spack gc -y
