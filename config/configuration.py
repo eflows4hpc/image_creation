@@ -14,7 +14,7 @@ repositories_cfg = {
 build_cfg = {
     "tmp_folder":"/home/jorgee/tmp", 
     "builder_home": "/home/jorgee/Shared/Projects/eFlows4HPC/git/image_creation/", 
-    "base_image": "eflows/spack_base", 
+    "base_image": "spack_base", 
     "dockerfile": "Dockerfile.spack", 
     "spack_cfg":"/home/jorgee/Shared/Projects/eFlows4HPC/easybuild-tests/.spack",
     "max_concurrent_builds" : 3,
@@ -22,5 +22,5 @@ build_cfg = {
     }
 
 database = 'sqlite:///db.sqlite'
-
+port = 5000
 secret_key = '_put_here_the_secret_key'
