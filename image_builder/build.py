@@ -56,7 +56,7 @@ class ImageBuilder:
         shutil.copytree(workflow_repo_path, workflow_folder_path)
         software_repo_path = os.path.join(tmp_folder, os.path.basename(self.software_repository))
         shutil.copytree(self.software_repository, software_repo_path)
-        spack_cfg_path = os.path.join(tmp_folder, os.path.basename(self.spack_cfg))
+        spack_cfg_path = os.path.join(tmp_folder, ".spack")
         shutil.copytree(self.spack_cfg, spack_cfg_path)
 
         build_command = self._generate_build_env(tmp_folder, step_id, machine)

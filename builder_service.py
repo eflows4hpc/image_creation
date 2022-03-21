@@ -5,7 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.serving import run_simple
-from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.exceptions import NotFound
 import jwt
 import logging
 import time
@@ -136,12 +137,8 @@ def check (id):
     except KeyError as e:
         abort(400, "Bad request: " + str(e))
 
-def simple(env, resp):
-    resp(b'200 OK', [(b'Content-Type', b'text/plain')])
-    return [b'Hello WSGI World']
-
-app.wsgi_app = DispatcherMiddleware(simple, {configuration.application_root: app.wsgi_app})
+application = DispatcherMiddleware(NotFound(), {"/image_creation": app})
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=configuration.port,debug=True, ssl_context='adhoc') 
+    run_simple("0.0.0.0", configuration.port, application, use_debugger=True, ssl_context='adhoc') 
