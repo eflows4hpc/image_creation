@@ -1,0 +1,82 @@
+tosca_definitions_version: alien_dsl_3_0_0
+
+metadata:
+  template_name: imagecreation.ansible
+  template_version: 1.0.0-SNAPSHOT
+  template_author: loicalbertin
+
+
+imports:
+  - tosca-normative-types:1.0.0-ALIEN20
+  - alien-base-types:3.0.0
+  - yorc-types:1.1.0
+
+data_types:
+  imagecreation.ansible.datatypes.Machine:
+    derived_from: tosca.datatypes.Root
+    properties:
+      platform:
+        type: string
+        required: true
+      architecture:
+        type: string
+        required: true
+      container_engine:
+        type: string
+        required: true
+
+node_types:
+  imagecreation.ansible.nodes.ImageCreation:
+    derived_from: org.alien4cloud.nodes.Job
+    #metadata:
+      #icon: imagecreation-icon.png
+    properties:
+      service_url:
+        type: string
+        required: true
+      insecure_tls:
+        type: boolean
+        required: false
+        default: false
+      username:
+        type: string
+        required: true
+      password:
+        type: string
+        required: true
+      machine:
+        type: imagecreation.ansible.datatypes.Machine
+        required: true
+      workflow:
+        type: string
+        required: true
+      step_id:
+        type: string
+        required: true
+      force:
+        type: boolean
+        required: false
+        default: false
+      debug:
+        type: boolean
+        description: Do not redact sensible information on logs
+        default: false
+    attributes:
+      filename: { get_operation_output: [ SELF, tosca.interfaces.node.lifecycle.Runnable, run, filename ] }
+    interfaces:
+      tosca.interfaces.node.lifecycle.Runnable:
+        inputs:
+          service_url: { get_property: [ SELF, service_url ] }
+          insecure_tls: { get_property: [ SELF, insecure_tls ] }
+          debug_logs: { get_property: [ SELF, debug ] }
+          username: { get_property: [ SELF, username ] }
+          password: { get_property: [ SELF, password ] }
+        submit:
+          inputs:
+            machine: { get_property: [ SELF, machine ] }
+            workflow: { get_property: [ SELF, workflow ] }
+            step_id: { get_property: [ SELF, step_id ] }
+            force: { get_property: [ SELF, force ] }
+          implementation: playbooks/submit_imagecreation.yaml
+        run:
+          implementation: playbooks/monitor_imagecreation.yaml

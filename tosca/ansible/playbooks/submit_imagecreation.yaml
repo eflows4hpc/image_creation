@@ -1,0 +1,40 @@
+- name: Image Creation Submission
+  hosts: all
+  strategy: free
+  tasks:
+    - name: Set payload
+      set_fact:
+        payload:
+          machine: "{{ machine | from_json }}"
+          workflow: "{{ workflow }}"
+          step_id: "{{ step_id }}"
+          force: "{{ force }}"
+
+    - name: Display payload
+      debug:
+        msg: "payload: {{ payload | to_json }}"
+
+    - name: Submit Image Creation
+      uri:
+        url: "{{ service_url }}/build/"
+        validate_certs: "{{ insecure_tls | ternary('no', 'yes', 'yes') }}"
+        method: POST
+        body: "{{ payload | to_json }}"
+        headers:
+          "Content-Type": application/json
+          Accept: application/json
+        force_basic_auth: yes
+        user: "{{ username }}"
+        password: "{{ password }}"
+        return_content: yes
+      register: get_response
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+    - name: Extract content
+      set_fact:
+        content: "{{ get_response.content | from_json }}"
+      no_log: "{{ debug_logs | default('false') == 'false' }}"
+
+    - name: Extract TOSCA_JOB_ID
+      set_fact:
+        TOSCA_JOB_ID: "{{ content.id }}"
