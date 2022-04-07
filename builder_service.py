@@ -105,9 +105,14 @@ def build_Image ():
     logging.debug(str(request))
     content = request.json
     print("Request received: " + str(content))
+
     try:
         if 'force' in content:
             force = content['force']
+            if isinstance(force, str):
+                force = force.lower() == 'true'
+            elif not isinstance(force, bool):
+                abort(400, "Bad request: force should be True or False" + str(e))
         else :
             force = False
         machine = content['machine']
@@ -125,7 +130,7 @@ def build_Image ():
         build_id = builder.request_build(workflow, step_id, machine, singularity, force)
         return jsonify({"id" : build_id})
     except KeyError as e:
-        abort(400, "Bad request: " + str(e))
+        abort(400, "Bad request: Key error" + str(e))
     
 
 @app.route('/build/<id>', methods=['GET'])
