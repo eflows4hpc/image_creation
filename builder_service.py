@@ -93,9 +93,7 @@ def get_token():
 
 
 @app.route('/images/download/<name>')
-@auth.login_required
 def download_image (name):
-    #For windows you need to use drive name [ex: F:/Example.pdf]
     path = builder.get_filename(name)
     if path is None:
         abort(404, "File " + name + " not found" )
@@ -106,6 +104,7 @@ def download_image (name):
 def build_Image ():
     logging.debug(str(request))
     content = request.json
+    print("Request received: " + str(content))
     try:
         if 'force' in content:
             force = content['force']

@@ -78,7 +78,9 @@ class ImageBuilder:
         utils.run_commands([' '.join(command)])
 
     def _to_singularity(self, image_id, singularity_image_path, built):
+        print ("Checking if image is previously built (" + str(built) +")")
         if (not os.path.exists(singularity_image_path)) or built:
+            print("Running singularity conversion for image " +  str(singularity_image_path))
             if os.path.exists(singularity_image_path):
                 os.remove(singularity_image_path)
             if built:
@@ -121,6 +123,7 @@ class ImageBuilder:
                     print("IB: Building Base Image")
                     self._build_base_and_push(tmp_folder, image_id, machine)
                 else:
+                    print("IB: Building Image" +str(image_id))
                     self._build_image_and_push(tmp_folder, workflow, step_id, image_id, machine)
                 built=True
             else :
@@ -129,7 +132,7 @@ class ImageBuilder:
                 image_filename = step_id + '_' + machine["architecture"] + '.sif'
                 singularity_image_path = os.path.join(self.images_location, image_filename)
                 current_build.status = CONVERTING
-                print("IB: Coverting to Singularity")
+                print("IB: Coverting " + image_id + " to Singularity " + singularity_image_path + "("+ str(built) +")")
                 self._to_singularity(image_id, singularity_image_path, built)
                 current_build.filename = image_filename
             print("IB: Image built")
