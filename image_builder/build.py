@@ -1,9 +1,13 @@
 
+from http.client import TEMPORARY_REDIRECT
 import os
+import traceback
 import uuid
 import docker
 import shutil
 import concurrent.futures
+
+from yaml import full_load
 
 from image_builder import utils
 
@@ -26,7 +30,12 @@ class ImageBuilder:
         self.builds= dict()
         self.container_registry = registry_cfg
         self.workflow_repository = repositories_cfg["workflow_repository"]
-        self.software_repository = repositories_cfg["software_repository"]
+        sr = repositories_cfg["software_repository"]
+        if sr.endswith("/"):
+            self.software_repository = sr[:-1]
+        else:
+            self.software_repository = sr
+        print("Software Repo: " + str(self.software_repository))
         self.spack_cfg = builder_cfg['spack_cfg']
         self.base_image = self.container_registry["images_prefix"] + builder_cfg['base_image']
         self.images_location = os.path.join(builder_cfg["tmp_folder"], "images")
@@ -49,22 +58,53 @@ class ImageBuilder:
         #TODO: Check architecture and pass te corresponding build command (build or buildx)
         return "build"
 
+    def _update_configuration(self, workflow_folder_path, arch):
+        import yaml
+        with open(os.path.join(workflow_folder_path,"spack.yaml"),'r') as file:
+            environment = yaml.full_load(file)
+        if 'spack' in environment:
+            target = []
+            target.append(arch)
+            if 'packages' in environment['spack']:
+                if 'all' in environment['spack']['packages']:
+
+                    environment['spack']['packages']['all']['target'] = target
+                
+            else:
+                environment['spack']['packages']={'all': {'target': target }}
+            environment['spack']['concretization'] = "together"
+            environment['spack']['view'] = "/opt/view"
+        else:
+            raise Exception("Incorrect spack environment. Not containing the spack tag.")
+        with open(os.path.join(workflow_folder_path,"spack.yaml"),'w') as file:
+            yaml.dump(environment, file, default_flow_style=False)
+
+
     def _build_image_and_push(self, tmp_folder, workflow, step_id, image_id, machine):
+        print("Creating " + tmp_folder)
         os.makedirs(tmp_folder)
         workflow_repo_path = os.path.join(self.workflow_repository,workflow,step_id)
         workflow_folder_path = os.path.join(tmp_folder, step_id)
+        print("Copying file " )
         shutil.copytree(workflow_repo_path, workflow_folder_path)
+        #print("Include target architecture")
+        self._update_configuration(workflow_folder_path, machine['architecture'])
+        #utils.append_text_to_file(os.path.join(workflow_folder_path,"spack.yaml"), "\n\t packages:\n\t\t all:\n\t\t\t target: "+ machine['architecture']+ "\n")
         software_repo_path = os.path.join(tmp_folder, os.path.basename(self.software_repository))
         shutil.copytree(self.software_repository, software_repo_path)
         spack_cfg_path = os.path.join(tmp_folder, ".spack")
         shutil.copytree(self.spack_cfg, spack_cfg_path)
-
+        print("Generating run command")
         build_command = self._generate_build_env(tmp_folder, step_id, machine)
         
         command = [self.builder_script, image_id, tmp_folder, machine['platform'],
             self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command]
         print("Running build")
         utils.run_commands([' '.join(command)])
+        print("Removing tmp_folder")
+        command = ["rm","-rf", tmp_folder]
+        utils.run_commands([' '.join(command)])
+
 
     def _build_base_and_push(self, tmp_folder, image_id, machine):
         #TODO: Check architecture and pass te corresponding build command (build or buildx)
@@ -123,7 +163,7 @@ class ImageBuilder:
                     print("IB: Building Base Image")
                     self._build_base_and_push(tmp_folder, image_id, machine)
                 else:
-                    print("IB: Building Image" +str(image_id))
+                    print("IB: Building Image " + str(image_id))
                     self._build_image_and_push(tmp_folder, workflow, step_id, image_id, machine)
                 built=True
             else :
@@ -138,6 +178,7 @@ class ImageBuilder:
             print("IB: Image built")
             current_build.status = FINISHED
         except Exception as e:
+            print(traceback.format_exc())
             current_build.status = FAILED
             current_build.message = str(e)
 

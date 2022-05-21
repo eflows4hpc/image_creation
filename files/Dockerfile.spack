@@ -4,9 +4,9 @@ LABEL org.opencontainers.image.source https://github.com/eflows4hpc/image_creati
 
 COPY %APPDIR% /%APPDIR%
 COPY software-catalog /software-catalog
-COPY .spack /root/.spack
+COPY .spack /.spack
 
-RUN  spack find && spack -e /%APPDIR% install && spack gc -y
+RUN  spack -C /.spack find && cat /%APPDIR%/spack.yaml && spack -C /.spack -e /%APPDIR% install -v -j2 && spack gc -y
 
-RUN  echo ". /opt/spack/share/spack/setup-env.sh && cd /%APPDIR% && spack env activate ." >> /etc/profile.d/z10_spack_environment.sh
+RUN  echo ". /opt/spack/share/spack/setup-env.sh && cd /%APPDIR% && spack -C /.spack env activate ." >> /etc/profile.d/z10_spack_environment.sh
 

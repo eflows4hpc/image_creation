@@ -39,6 +39,11 @@ def replace_in_file(source, destination, to_replace):
     f1.close()
     f2.close()
 
+def append_text_to_file(filepath, to_append):
+    file = open(filepath, 'a')
+    file.write(to_append)
+    file.close()
+
 def copytree(src, dst, symlinks=False, ignore=None):
     for item in os.listdir(src):
         s = os.path.join(src, item)
