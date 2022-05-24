@@ -120,6 +120,8 @@ class ImageBuilder:
     def _to_singularity(self, image_id, singularity_image_path, built):
         print ("Checking if image is previously built (" + str(built) +")")
         if (not os.path.exists(singularity_image_path)) or built:
+            os.environ['SINGULARITY_DOCKER_USERNAME'] = self.container_registry['user']
+            os.environ['SINGULARITY_DOCKER_PASSWORD'] = self.container_registry['token']
             print("Running singularity conversion for image " +  str(singularity_image_path))
             if os.path.exists(singularity_image_path):
                 os.remove(singularity_image_path)
