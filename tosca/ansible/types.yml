@@ -28,8 +28,8 @@ data_types:
 node_types:
   imagecreation.ansible.nodes.ImageCreation:
     derived_from: org.alien4cloud.nodes.Job
-    #metadata:
-      #icon: imagecreation-icon.png
+    metadata:
+      icon: icons/cargo.png
     properties:
       service_url:
         type: string
