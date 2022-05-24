@@ -21,3 +21,4 @@ elif [ "$action" == "download" ]; then
    image=$1
    wget --no-check-certificate --user $user --password $passwd $url/image_creation/images/download/$image
 fi
+echo ""
