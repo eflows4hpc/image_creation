@@ -7,16 +7,16 @@ registry_cfg = {
     }
     
 repositories_cfg = {
-    "workflow_repository":"/home/jorgee/Shared/Projects/eFlows4HPC/workflow_registry/",
-    "software_repository":"/home/jorgee/Shared/Projects/eFlows4HPC/easybuild-tests/software_repo" 
+    "workflow_repository":"/path/to/workflow-registry/",
+    "software_repository":"/path/to/software-catalog/" 
     }
 
 build_cfg = {
-    "tmp_folder":"/home/jorgee/tmp", 
-    "builder_home": "/home/jorgee/Shared/Projects/eFlows4HPC/git/image_creation/", 
+    "tmp_folder":"/path/to/tmp", 
+    "builder_home": "/path/to/image_creation/", 
     "base_image": "spack_base", 
     "dockerfile": "Dockerfile.spack", 
-    "spack_cfg":"/home/jorgee/Shared/Projects/eFlows4HPC/easybuild-tests/.spack",
+    "spack_cfg":"/path/to/software-catalog/cfg",
     "max_concurrent_builds" : 3,
     "singularity_sudo" : True
     }
