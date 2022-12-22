@@ -1,0 +1,7 @@
+{
+    "machine": {
+         "platform": "linux/ppc64le", "architecture": "power9le", "container_engine": "singularity", "mpi":openmpi@4.0.0", "gpu": "cuda@10.2"  
+         },
+    "workflow":"Pillar_III", 
+    "step_id" :"ftrt"
+}

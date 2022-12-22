@@ -1,0 +1,7 @@
+{
+    "machine": {
+         "platform": "linux/amd64", "architecture": "skylake_avx512", "container_engine": "singularity", "mpi": "intel-mpi@2018" 
+         },
+    "workflow":"Pillar_II", 
+    "step_id" :"esm" 
+}

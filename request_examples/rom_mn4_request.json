@@ -1,0 +1,7 @@
+{
+    "machine": {
+         "platform": "linux/amd64", "architecture": "skylake_avx512", "container_engine": "singularity" 
+         },
+    "workflow":"rom_pillar_I", 
+    "step_id" :"reduce_order_model"
+}
