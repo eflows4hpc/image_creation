@@ -5,8 +5,15 @@ LABEL org.opencontainers.image.source https://github.com/eflows4hpc/image_creati
 COPY %APPDIR% /%APPDIR%
 COPY software-catalog /software-catalog
 COPY .spack /.spack
+COPY packages /packages
 
-RUN  spack -C /.spack find && cat /%APPDIR%/spack.yaml && spack -C /.spack -e /%APPDIR% install -v -j2 && spack gc -y
+WORKDIR /packages
+
+RUN  spack -C /.spack find && cat /%APPDIR%/spack.yaml \
+    && spack -C /.spack -e /%APPDIR% install --fail-fast --no-checksum --keep-stage -j2 \
+    && [ -f /%APPDIR%/post_inst.sh ] && sh /%APPDIR%/post_inst.sh || echo "Nothing else to do"; spack gc -y
+    # && spack -C /.spack mirror add binary_mirror_dev https://binaries.spack.io/develop \
+    # && spack -C /.spack buildcache keys --install --trust \
 
 RUN  echo ". /opt/spack/share/spack/setup-env.sh && cd /%APPDIR% && spack -C /.spack env activate ." >> /etc/profile.d/z10_spack_environment.sh
 

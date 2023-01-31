@@ -1,6 +1,8 @@
 
 from http.client import TEMPORARY_REDIRECT
 import os
+from platform import architecture
+import time
 import traceback
 import uuid
 import docker
@@ -44,6 +46,9 @@ class ImageBuilder:
         self.builds_location = os.path.join(builder_cfg["tmp_folder"], "builds")
         if not os.path.exists(self.builds_location):
             os.makedirs(self.builds_location)
+        self.packages_location = os.path.join(builder_cfg["tmp_folder"], "packages")
+        if not os.path.exists(self.packages_location):
+            os.makedirs(self.packages_location)
         self.dockerfile_template =  os.path.join(builder_cfg["builder_home"], "files", builder_cfg["dockerfile"])
         self.dockerfile_base =  os.path.join(builder_cfg["builder_home"], "files", "Dockerfile.base")
         self.builder_script = os.path.join(builder_cfg["builder_home"], "files", "run_build.sh")
@@ -56,23 +61,38 @@ class ImageBuilder:
         to_replace = {"%BASE_IMG%": self.base_image,"%ARCH%": machine['architecture'], "%APPDIR%": step_id, "%CFG_DIR%": self.spack_cfg}
         utils.replace_in_file(self.dockerfile_template, dockerfile, to_replace)
         #TODO: Check architecture and pass te corresponding build command (build or buildx)
-        return "build"
+        print("Platform is " +str(machine['platform']))
+        if machine['platform'] == 'linux/amd64':
+            return "build"
+        else:
+            return "buildx"
 
-    def _update_configuration(self, workflow_folder_path, arch):
+    def _update_configuration(self, workflow_folder_path, machine):
+        
         import yaml
         with open(os.path.join(workflow_folder_path,"spack.yaml"),'r') as file:
             environment = yaml.full_load(file)
         if 'spack' in environment:
-            target = []
-            target.append(arch)
-            if 'packages' in environment['spack']:
-                if 'all' in environment['spack']['packages']:
-
-                    environment['spack']['packages']['all']['target'] = target
-                
-            else:
-                environment['spack']['packages']={'all': {'target': target }}
-            environment['spack']['concretization'] = "together"
+            if 'architecture' in machine:
+                arch = machine['architecture']
+                target = []
+                target.append(arch)
+                if 'packages' in environment['spack']:
+                    if 'all' in environment['spack']['packages']:
+                        environment['spack']['packages']['all']['target'] = target
+                else:
+                    environment['spack']['packages']={'all': {'target': target }}
+            if 'mpi' in machine:
+                if 'specs' in environment['spack']:
+                    environment['spack']['specs'].append(machine['mpi'])
+                else:
+                    environment['spack']['specs'] = [machine['mpi']]
+            if 'gpu' in machine:
+                if 'specs' in environment['spack']:
+                    environment['spack']['specs'].append(machine['gpu'])
+                else:
+                    environment['spack']['specs'] = [machine['gpu']]
+            environment['spack']['concretizer'] = {'unify': True}
             environment['spack']['view'] = "/opt/view"
         else:
             raise Exception("Incorrect spack environment. Not containing the spack tag.")
@@ -80,7 +100,7 @@ class ImageBuilder:
             yaml.dump(environment, file, default_flow_style=False)
 
 
-    def _build_image_and_push(self, tmp_folder, workflow, step_id, image_id, machine):
+    def _build_image_and_push(self, tmp_folder, workflow, step_id, image_id, machine, force):
         print("Creating " + tmp_folder)
         os.makedirs(tmp_folder)
         workflow_repo_path = os.path.join(self.workflow_repository,workflow,step_id)
@@ -88,17 +108,19 @@ class ImageBuilder:
         print("Copying file " )
         shutil.copytree(workflow_repo_path, workflow_folder_path)
         #print("Include target architecture")
-        self._update_configuration(workflow_folder_path, machine['architecture'])
+        self._update_configuration(workflow_folder_path, machine)
         #utils.append_text_to_file(os.path.join(workflow_folder_path,"spack.yaml"), "\n\t packages:\n\t\t all:\n\t\t\t target: "+ machine['architecture']+ "\n")
         software_repo_path = os.path.join(tmp_folder, os.path.basename(self.software_repository))
         shutil.copytree(self.software_repository, software_repo_path)
         spack_cfg_path = os.path.join(tmp_folder, ".spack")
         shutil.copytree(self.spack_cfg, spack_cfg_path)
+        packages_path = os.path.join(tmp_folder, "packages")
+        shutil.copytree(self.packages_location, packages_path)
         print("Generating run command")
         build_command = self._generate_build_env(tmp_folder, step_id, machine)
         
         command = [self.builder_script, image_id, tmp_folder, machine['platform'],
-            self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command]
+            self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command, str(force)]
         print("Running build")
         utils.run_commands([' '.join(command)])
         print("Removing tmp_folder")
@@ -106,23 +128,29 @@ class ImageBuilder:
         utils.run_commands([' '.join(command)])
 
 
-    def _build_base_and_push(self, tmp_folder, image_id, machine):
+    def _build_base_and_push(self, tmp_folder, image_id, machine, force):
         #TODO: Check architecture and pass te corresponding build command (build or buildx)
         os.makedirs(tmp_folder)
         dockerfile = os.path.join(tmp_folder, "Dockerfile")
         shutil.copy(self.dockerfile_base, dockerfile)
-        build_command = "build"
+        print("Platform is " +str(machine['platform']))
+        if machine['platform'] == 'linux/amd64':
+            build_command = "build"
+        else:
+            build_command = "buildx build"
         command = [self.builder_script, image_id, tmp_folder, machine['platform'],
-            self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command]
-        print("Running build")
+            self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command, str(force)]
+        print("Running build " + str(command))
         utils.run_commands([' '.join(command)])
 
     def _to_singularity(self, image_id, singularity_image_path, built):
         print ("Checking if image is previously built (" + str(built) +")")
         if (not os.path.exists(singularity_image_path)) or built:
-            os.environ['SINGULARITY_DOCKER_USERNAME'] = self.container_registry['user']
-            os.environ['SINGULARITY_DOCKER_PASSWORD'] = self.container_registry['token']
+            env = os.environ.copy()
+            env['SINGULARITY_DOCKER_USERNAME'] = self.container_registry['user']
+            env['SINGULARITY_DOCKER_PASSWORD'] = self.container_registry['token']
             print("Running singularity conversion for image " +  str(singularity_image_path))
+            print("Environ: " + str(env))
             if os.path.exists(singularity_image_path):
                 os.remove(singularity_image_path)
             if built:
@@ -133,9 +161,10 @@ class ImageBuilder:
                 command = ['sudo', 'singularity', 'build', singularity_image_path ,source]
             else:
                 command = ['singularity', 'build', singularity_image_path ,source]
-            utils.run_commands([' '.join(command)])
+            utils.run_commands([' '.join(command)], env=env)
     
     def _check_and_build(self, build_id, workflow, step_id, machine, singularity, force):
+        start_t = time.time()
         current_build = self.builds[build_id]
         current_build.status=STARTED
         if step_id is None:
@@ -163,10 +192,10 @@ class ImageBuilder:
                 current_build.status = BUILDING
                 if step_id is None:
                     print("IB: Building Base Image")
-                    self._build_base_and_push(tmp_folder, image_id, machine)
+                    self._build_base_and_push(tmp_folder, image_id, machine, force)
                 else:
                     print("IB: Building Image " + str(image_id))
-                    self._build_image_and_push(tmp_folder, workflow, step_id, image_id, machine)
+                    self._build_image_and_push(tmp_folder, workflow, step_id, image_id, machine, force)
                 built=True
             else :
                 built=False
@@ -177,12 +206,15 @@ class ImageBuilder:
                 print("IB: Coverting " + image_id + " to Singularity " + singularity_image_path + "("+ str(built) +")")
                 self._to_singularity(image_id, singularity_image_path, built)
                 current_build.filename = image_filename
+            end_t = time.time()
             print("IB: Image built")
             current_build.status = FINISHED
         except Exception as e:
             print(traceback.format_exc())
             current_build.status = FAILED
             current_build.message = str(e)
+        end_t = time.time()
+        print("IB: Elaspsed time " + str(end_t-start_t) + " seconds.")
 
     def request_build(self, workflow, step_id, machine, singularity, force):
         build_id = str(uuid.uuid4())

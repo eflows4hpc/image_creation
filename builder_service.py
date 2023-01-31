@@ -91,6 +91,15 @@ def get_token():
     print("generated token: " + token)
     return jsonify({ 'token': token, 'duration': 6000 })
 
+@app.route('/update', methods=['PUT'])
+@auth.login_required
+def update_password():
+    password = request.json.get('password')
+    g.user.hash_password(password)
+    db.session.commit()
+    print("Password updated")
+    return jsonify({ "Response" : "Updated" }, 202)
+
 
 @app.route('/images/download/<name>')
 def download_image (name):
