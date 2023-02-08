@@ -44,7 +44,7 @@ $ python3 builder_service.py
 
 ### Trigger an image creation 
 
-This API endpoint allows the *end-user* to trigger the image creation
+This API endpoint allows the *end-user* to trigger the image creation. The request should include a description of the target machine and the identification of the workflow.
 
 #### Request
 
@@ -55,7 +55,9 @@ This API endpoint allows the *end-user* to trigger the image creation
   "machine": {
     "platform": "linux/amd64", 
     "architecture": "rome", 
-    "container_engine": "singularity"},
+    "container_engine": "singularity",
+    "mpi": "openmpi@4",
+    "gpu": "cuda@10"},
   "workflow":"minimal_workflow",
   "step_id" :"wordcount",
   "force": False
@@ -120,21 +122,21 @@ Content-Type: application/binary
 A simple BASH client has been implemented in client.sh. This is the usage of this client
 
 ```
-./client.sh <user> <passwd> <image_creation_service_url> <"build"|"status"|"download"> <json_file|build_id|image_name>
+./cic_cli <user> <passwd> <image_creation_service_url> <"build"|"status"|"download"> <json_file|build_id|image_name>
 ```
 
 The following lines show an example of the different commands
 
 ```
-$ image_creation> ./client.sh user pass https://bscgrid20.bsc.es build test_request.json
+$ image_creation> ./cic_cli user pass https://bscgrid20.bsc.es build test_request.json
 Response:
 {"id":"f1f4699b-9048-4ecc-aff3-1c689b855adc"}
 
-$ image_creation> ./client.sh user pass https://bscgrid20.bsc.es status f1f4699b-9048-4ecc-aff3-1c689b855adc
+$ image_creation> ./cic_cli user pass https://bscgrid20.bsc.es status f1f4699b-9048-4ecc-aff3-1c689b855adc
 Response:
 {"filename":"reduce_order_model_sandybridge.sif","image_id":"ghcr.io/eflows4hpc/reduce_order_model_sandybridge","message":null,"status":"FINISHED"}
 
-$ image_creation> ./client.sh user pass https://bscgrid20.bsc.es download reduce_order_model_sandybridge.sif
+$ image_creation> ./cic_cli user pass https://bscgrid20.bsc.es download reduce_order_model_sandybridge.sif
 
 --2022-05-24 16:01:28--  https://bscgrid20.bsc.es/image_creation/images/download/reduce_order_model_sandybridge.sif
 Resolving bscgrid20.bsc.es (bscgrid20.bsc.es)... 84.88.52.251
