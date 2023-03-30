@@ -10,6 +10,7 @@ from werkzeug.exceptions import NotFound
 import jwt
 import logging
 import time
+import uuid
 
 from config import configuration
 from image_builder.build import ImageBuilder 
@@ -52,6 +53,16 @@ class User(db.Model):
         except:
             return
         return User.query.get(data['id'])
+
+class Build(db.Model):
+    id = db.Column(db.String(64), primary_key = True)
+    status = db.Column(db.String(32))
+    image = db.Column(db.String(64))
+    filename = db.Column(db.String(64))
+    message = db.Column(db.String(64))
+    user = db.Column(db.String(32))
+
+
 
 
 @auth.verify_password
@@ -136,19 +147,38 @@ def build_Image ():
             workflow = None
             step_id = None
 
-        build_id = builder.request_build(workflow, step_id, machine, singularity, force)
+        build_id = str(uuid.uuid4())
+        build = Build(id=build_id, user=g.user.username, status='PENDING')
+        db.session.add(build)
+        db.session.commit()
+        builder.request_build(build_id, workflow, step_id, machine, singularity, force, _update_build)
         return jsonify({"id" : build_id})
     except KeyError as e:
         abort(400, "Bad request: Key error" + str(e))
-    
+
+def _update_build(id, status, image=None, filename=None, message=None):
+    build = Build.query.get(id)
+    if build is not None:
+        build.status=status
+        if image is not None:
+            build.image=image
+        if filename is not None:
+            build.filename=filename
+        if message is not None:
+            build.message=message
+        db.session.commit()
+    else:
+        print("ERROR: Build with id " + str(id) + " not found")
+
 
 @app.route('/build/<id>', methods=['GET'])
 @auth.login_required
 def check (id):
-    try:
-        return jsonify(builder.check_build(id))
-    except KeyError as e:
-        abort(400, "Bad request: " + str(e))
+    build = Build.query.get(id)
+    if build is not None:
+        return {"status" : build.status, "image_id" : build.image , "filename": build.filename, "message": build.message }
+    else:
+        abort(400, "Build not found")
 
 application = DispatcherMiddleware(NotFound(), {"/image_creation": app})
 
