@@ -37,6 +37,18 @@ auth = HTTPBasicAuth()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 
+from contextlib import contextmanager
+
+@contextmanager
+def no_expire():
+    s = db.session()
+    s.expire_on_commit = False
+    try:
+        yield
+    finally:
+        s.expire_on_commit = True
+
+
 user_build = db.Table('user_build',
                     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
                     db.Column('build_id', db.String(64), db.ForeignKey('build.id'))
@@ -201,7 +213,8 @@ def build_image (workflow, step_id, version, machine, force, user):
             db.session.add(build)
             user = db.session.query(User).get(user.id)
             user.builds.append(build)
-            db.session.commit()
+            with no_expire():
+                db.session.commit()
             builder.request_build(build_id, image_id, workflow_orm, machine_orm,
                               singularity, force, _update_build, _update_image)
         else:
@@ -225,9 +238,11 @@ def build_image (workflow, step_id, version, machine, force, user):
                 build = Build(id=build_id, status=PENDING,
                               machine=machine_orm, workflow=workflow_orm, image=image_id)
                 db.session.add(build)
-                db.session.commit()
                 user.builds.append(build)
-                db.session.commit()
+                with no_expire():
+                    db.session.commit()
+                db.session.expunge(workflow_orm)
+                db.session.expunge(machine_orm)
                 builder.request_build(build_id, image_id, workflow_orm, machine_orm,
                                   singularity, force, _update_build, _update_image)
         return build_id
