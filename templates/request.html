@@ -1,0 +1,80 @@
+{% extends "dashboard.html" %}
+
+{% block dashboard %}
+<h1 class="title">New Container Image Build Request</h1>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification is-danger">
+    {{ messages[0] }}.
+</div>
+{% endif %}
+{% endwith %}
+<form method="POST" action="{{ url_for('dashboard.run_build') }}">
+    <div class="card">
+        <div class="card-header">
+            <p class="card-header-title">Machine Description</p>
+        </div>
+        <div class="card-content">
+            <div class="content">
+                <div class="field">
+                    <div class="select is-large">
+                        <select name="platform" placeholder="System Platform" required>
+                            <option disabled selected value="None">-- System Platform --</option>
+                            <option value="linux/amd64">linux/amd64</option>
+                            <option value="linux/ppc64le">linux/ppc64le</option>
+                            <option value="linux/arm64/v8">linux/arm64/v8</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input required  class="input is-large" type="" name="architecture" placeholder="Processor Architecture">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="select is-large">
+                        <select name="container_engine" placeholder="Container Engine" required>
+                            <option disabled selected value="None">-- Container Engine --</option>
+                            <option value="docker">Docker</option>
+                            <option value="singularity">Singularity</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="" name="mpi" placeholder="MPI version (Optional)">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="" name="gpu" placeholder="GPU runtime (Optional)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <p class="card-header-title">Workflow Reference</p>
+        </div>
+        <div class="card-content">
+            <div class="content">
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="" name="wf_name" placeholder="Workflow Name">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="" name="wf_step" placeholder="Sub-workflow Name">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="button is-block is-info is-large is-fullwidth">Build</button>
+</form>
+
+
+{% endblock %}

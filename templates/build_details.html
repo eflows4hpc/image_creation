@@ -1,0 +1,66 @@
+{% extends "dashboard.html" %}
+
+{% block dashboard %}
+<h1 class="title">Build Request {{build.id}} </h1>
+    <div class="card"><div class="card-header">
+    <p class="card-header-title">Build Description</p>
+</div>
+<div class="card-content">
+    <div class="content">
+        <div class="field">
+            <label>Image ID: {{build.image}}</label>
+        </div>
+        <div class="field">
+            <label>Status: {{build.status}}</label>
+        </div>
+        <div class="field">
+            <label>Messages: {{build.message}}</label>
+        </div>
+        <div class="field">
+            <label>Singularity file: {{build.filename}}</label>
+        </div>  
+    </div>
+</div>
+    <div class="card"><div class="card-header">
+        <p class="card-header-title">Machine Description</p>
+    </div>
+    <div class="card-content">
+        <div class="content">
+            <div class="field">
+                <label>Platorm: {{build.machine.platform}}</label>
+            </div>
+            <div class="field">
+                <label>Processor Architecture: {{build.machine.architecture}}</label>
+            </div>
+            <div class="field">
+                <label>MPI: {{build.mpi}}</label>
+            </div>
+            <div class="field">
+                <label>GPU: {{build.gpu}}</label>
+            </div>  
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <p class="card-header-title">Workflow Reference</p>
+    </div>
+    <div class="card-content">
+        <div class="content">
+            <div class="field">
+                <label>Workflow Name: {{build.workflow.name}}</label>
+            </div>
+            <div class="field">
+                <label>Workflow Step: {{build.workflow.step}}</label>
+            </div>
+            <div class="field">
+                <label>Version: {{build.workflow.version}}</label>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

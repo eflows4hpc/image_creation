@@ -2,11 +2,15 @@ import subprocess
 import shutil
 import os
 import sys
-def run_commands(commands, **kwargs):
+
+def run_commands(commands, logger = None, **kwargs):
     cmd = ' && '.join(commands)
     res = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
     for line in iter(res.stdout.readline, b''):
-        sys.stdout.write(line.decode(sys.stdout.encoding)) 
+        if logger:
+            logger.info(line.decode("utf-8").strip())
+        else:
+            sys.stdout.write(line.decode(sys.stdout.encoding)) 
     res.wait()
     if res.returncode != 0 :
         raise subprocess.CalledProcessError(res.returncode, res.args)

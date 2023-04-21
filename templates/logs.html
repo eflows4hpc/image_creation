@@ -1,0 +1,24 @@
+{% extends "dashboard.html" %}
+
+{% block dashboard %}
+<h1 class="title">Image Creation Logs for build {{id}}</h1>
+<button onclick="update()">Refresh</button><pre id="output"></pre>
+
+<script>
+    var output = document.getElementById('output');
+    
+    function update(){
+      var xhr = new XMLHttpRequest();
+      xhr.onloadend = function(){
+      output.textContent = xhr.responseText;
+      }
+      xhr.open('GET', '{{ url_for('dashboard.logs_stream', id=id) }}');
+      xhr.send();
+    }
+    update()
+    /*setInterval(function(){
+      output.textContent = xhr.responseText;
+      }, 1000);*/
+</script>
+
+{% endblock %}

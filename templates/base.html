@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flask Auth Example</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous"/>
+</head>
+<style>
+.button.is-orange{
+    background-color: #ff8606;
+    border-color: transparent;
+    color: #fff;
+}
+</style>
+<body>
+    <nav class="navbar is-info has-shadow">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="https://eflows4hpc.eu/">
+                    <img loading="lazy" width="210" height="60" src="https://eflows4hpc.eu/wp-content/uploads/2021/02/logo-blanc_1-1.svg">
+                </a>
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenuHeroA">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+            
+            
+            <div id="navbarMenuHeroA" class="navbar-menu">
+                <div class="navbar-end">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard.home') }}" class="navbar-item">
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="navbar-item">
+                        Logout
+                    </a>
+                    {% endif %}
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.login') }}" class="navbar-item">
+                        Login
+                    </a>
+                    <a href="{{ url_for('auth.signup') }}" class="navbar-item">
+                        Sign Up
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+    </nav>
+    {% block content %}
+    {% endblock %}
+</body>

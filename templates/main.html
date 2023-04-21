@@ -1,0 +1,17 @@
+{% extends "dashboard.html" %}
+
+{% block dashboard %}
+<h1 class="title">Welcome {{name}} to the eflows4HPC Container Image Creation Service</h1>
+<div class="columns">
+    <div class="column">
+        <a href="{{url_for('dashboard.get_builds')}}" class="button is-orange is-large column">
+            Build requests
+        </a>
+    </div>
+    <div class="column">
+        <a href="{{url_for('dashboard.get_images')}}" class="button is-orange is-large column">
+            Available Images
+        </a>
+    </div>
+</div>
+{% endblock %}

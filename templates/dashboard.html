@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="main-content columns is-fullwidth is-fullheight">
+    <aside class="column is-3 is-narrow-mobile is-fullheight section is-hidden-mobile">
+        <p class="menu-label is-hidden-touch">Navigation</p>
+        <ul class="menu-list">
+          <li>
+            <a href="{{ url_for('dashboard.home') }}" class="">
+              <span class="icon"><i class="fas fa-home"></i></span> Home
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('dashboard.get_builds') }}" class="">
+              <span class="icon"><i class="fas fa-cog"></i></span> Builds
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('dashboard.get_images') }}" class="">
+              <span class="icon"><i class="fas fa-layer-group"></i></span> Images
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('dashboard.account') }}" class="">
+              <span class="icon"><i class="fas fa-user"></i></span> Account
+            </a>
+          </li>
+        </ul>
+    </aside>
+    
+    <div class="section column is-9">
+        {% block dashboard %}
+        {% endblock %}
+    </div>
+</section>
+{% endblock %}

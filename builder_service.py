@@ -1,20 +1,22 @@
 
-from flask import Flask, flash, request, jsonify, abort, g
+from platform import architecture
+from flask import Flask, flash, abort, g
 from flask import send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, login_user, UserMixin
 from werkzeug.serving import run_simple
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.exceptions import NotFound
 import jwt
-import logging
 import time
 import uuid
+import traceback
 
 from config import configuration
 from image_builder.build import ImageBuilder 
-
+from image_builder.build import PENDING,STARTED,BUILDING,CONVERTING
 
 app = Flask(__name__)
 app.config['APPLICATION_ROOT'] = configuration.application_root
@@ -22,37 +24,42 @@ app.config['SECRET_KEY'] = configuration.secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = configuration.database
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+CAPTCHA_WEBSITE_KEY= configuration.captcha_web_site_key
+CAPTCHA_SERVER_KEY= configuration.captcha_site_key
 builder = ImageBuilder(configuration.repositories_cfg, configuration.build_cfg, configuration.registry_cfg)
 
 db = SQLAlchemy(app)
 
+#Basic Auth for API
 auth = HTTPBasicAuth()
 
-class User(db.Model):
+#Login for GUI
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+
+user_build = db.Table('user_build',
+                    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+                    db.Column('build_id', db.String(64), db.ForeignKey('build.id'))
+                    )
+
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(32), index = True)
     password_hash = db.Column(db.String(64))
+    email = db.Column(db.String(100))
+    builds = db.relationship('Build', secondary=user_build, backref='users')
 
     def hash_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
-
+    
     def generate_auth_token(self, expires_in=600):
         return jwt.encode(
             {'id': self.id, 'exp': time.time() + expires_in},
             app.config['SECRET_KEY'], algorithm='HS256')
 
-    @staticmethod
-    def verify_auth_token(token):
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'],
-                              algorithms=['HS256'])
-        except:
-            return
-        return User.query.get(data['id'])
 
 class Build(db.Model):
     id = db.Column(db.String(64), primary_key = True)
@@ -60,15 +67,58 @@ class Build(db.Model):
     image = db.Column(db.String(64))
     filename = db.Column(db.String(64))
     message = db.Column(db.String(64))
-    user = db.Column(db.String(32))
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
+    machine = db.relationship("Machine", backref=db.backref("build", uselist=False))
+    workflow_id = db.Column(db.Integer, db.ForeignKey('workflow.id'))
+    workflow = db.relationship("Workflow", backref=db.backref("build", uselist=False))
+
+class Machine(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    platform = db.Column(db.String(64))
+    architecture = db.Column(db.String(64))
+    mpi = db.Column(db.String(64))
+    gpu = db.Column(db.String(64))
+
+class Workflow(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(64))
+    step = db.Column(db.String(64))
+    version = db.Column(db.String(64))
+
+class Image(db.Model):
+    id = db.Column(db.String(64), primary_key = True)
+    filename = db.Column(db.String(64))
+    machine_id = db.Column(db.Integer, db.ForeignKey('machine.id'))
+    machine = db.relationship("Machine", backref=db.backref("image", uselist=False))
+    workflow_id = db.Column(db.Integer, db.ForeignKey('workflow.id'))
+    workflow = db.relationship("Workflow", backref=db.backref("image", uselist=False))
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
+def check_and_log_user(username, password, remember):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return False
+    if user.verify_password(password):
+        login_user(user, remember=remember)
+        return True 
+    else:
+        return False
+  
+def verify_auth_token(token):
+    try:
+        data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+    except:
+        return
+    return User.query.get(data['id'])
 
 @auth.verify_password
 def verify_password(username_or_token, password):
     # first try to authenticate by token
-    user = User.verify_auth_token(username_or_token)
+    user = verify_auth_token(username_or_token)
     if not user:
         # try to authenticate with username/password
         user = User.query.filter_by(username=username_or_token).first()
@@ -81,6 +131,8 @@ def verify_password(username_or_token, password):
     g.user = user
     return True
 
+'''
+#Moved to auth blue print
 @app.route('/register', methods=['POST'])
 def register():
     username = request.json.get('username')
@@ -110,7 +162,7 @@ def update_password():
     db.session.commit()
     print("Password updated")
     return jsonify({ "Response" : "Updated" }, 202)
-
+'''
 
 @app.route('/images/download/<name>')
 def download_image (name):
@@ -119,42 +171,74 @@ def download_image (name):
         abort(404, "File " + name + " not found" )
     return send_file(path, as_attachment=True)
 
-@app.route('/build/', methods= ['POST'])
-@auth.login_required
-def build_Image ():
-    logging.debug(str(request))
-    content = request.json
-    print("Request received: " + str(content))
-
+def build_image (workflow, step_id, version, machine, force, user):
     try:
-        if 'force' in content:
-            force = content['force']
-            if isinstance(force, str):
-                force = force.lower() == 'true'
-            elif not isinstance(force, bool):
-                abort(400, "Bad request: force should be True or False" + str(e))
-        else :
-            force = False
-        machine = content['machine']
         if machine['container_engine'] == 'singularity':
             singularity = True
         else:
-            singularity = False   
-        
-        workflow = content['workflow']
-        step_id = content['step_id']
-        if workflow == 'BASE' and step_id == 'BASE' :
+            singularity = False
+
+        if workflow == 'BASE' and step_id == 'BASE':
             workflow = None
             step_id = None
+        if version is None:
+            version = 'latest'
+        machine_orm = Machine(platform=machine['platform'], architecture=machine['architecture'], mpi=machine.get('mpi', None), gpu=machine.get('gpu', None))
+        workflow_orm = Workflow(name=workflow, step=step_id, version=version)
 
-        build_id = str(uuid.uuid4())
-        build = Build(id=build_id, user=g.user.username, status='PENDING')
-        db.session.add(build)
-        db.session.commit()
-        builder.request_build(build_id, workflow, step_id, machine, singularity, force, _update_build)
-        return jsonify({"id" : build_id})
-    except KeyError as e:
-        abort(400, "Bad request: Key error" + str(e))
+        image_id = builder.gen_image_id(workflow_orm, machine_orm)
+        image = Image.query.get(image_id)
+        if image is None:
+            # If there is not an image add and build
+            db.session.add(machine_orm)
+            db.session.add(workflow_orm)
+            image = Image(id=image_id, machine=machine_orm, workflow=workflow_orm)
+            db.session.add(image)
+            db.session.commit()
+            build_id = str(uuid.uuid4())
+            build = Build(id=build_id, status=PENDING, machine=machine_orm,
+                          workflow=workflow_orm, image=image_id)
+            db.session.add(build)
+            user = db.session.query(User).get(user.id)
+            user.builds.append(build)
+            db.session.commit()
+            builder.request_build(build_id, image_id, workflow_orm, machine_orm,
+                              singularity, force, _update_build, _update_image)
+        else:
+            # If there is an image check if it is currently building it
+            build = check_image_currently_build(image_id)
+            if build:
+                print("Build already running ")
+                if build in user.builds:
+                    print("Build already requested by the same user")
+                else:
+                    user = db.session.query(User).get(user.id)
+                    user.builds.append(build)
+                    db.session.commit()
+                build_id = build.id
+
+            else:
+                user = db.session.query(User).get(user.id)
+                db.session.add(machine_orm)
+                db.session.add(workflow_orm)
+                build_id = str(uuid.uuid4())
+                build = Build(id=build_id, status=PENDING,
+                              machine=machine_orm, workflow=workflow_orm, image=image_id)
+                db.session.add(build)
+                db.session.commit()
+                user.builds.append(build)
+                db.session.commit()
+                builder.request_build(build_id, image_id, workflow_orm, machine_orm,
+                                  singularity, force, _update_build, _update_image)
+        return build_id
+    except Exception as e:
+        print(traceback.format_exc())
+        flash("Exception: " + str(e))
+        raise e
+
+def check_image_currently_build(image_id):
+    return Build.query.filter(Build.image==image_id, Build.status.in_([PENDING,STARTED,BUILDING,CONVERTING])).first()
+    
 
 def _update_build(id, status, image=None, filename=None, message=None):
     build = Build.query.get(id)
@@ -170,18 +254,46 @@ def _update_build(id, status, image=None, filename=None, message=None):
     else:
         print("ERROR: Build with id " + str(id) + " not found")
 
-
-@app.route('/build/<id>', methods=['GET'])
-@auth.login_required
-def check (id):
-    build = Build.query.get(id)
-    if build is not None:
-        return {"status" : build.status, "image_id" : build.image , "filename": build.filename, "message": build.message }
+def _update_image(id, filename=None, machine=None, workflow=None):
+    print("Updating Image " + str(id))
+    image = Image.query.get(id)
+    if image is not None:
+        if filename is not None:
+            image.filename=filename
+        if machine is not None:
+            image.machine=machine
+        if workflow is not None:
+            image.workflow=workflow
+        db.session.commit()
+        print("Updating Image " + str(id) + " updated.")
     else:
-        abort(400, "Build not found")
+        print("Image with id " + str(id) + " not found.")
+        
+    db.session.commit()
 
-application = DispatcherMiddleware(NotFound(), {"/image_creation": app})
+def get_build_logs_path(id):
+    return builder.get_build_logs_path(id)
+
+def remove_build(id):
+    return builder.delete_build(id)
+
+def get_build(id):
+    return Build.query.get(id)
+
+def create_app():
+    login_manager.init_app(app)
+
+    from blueprints.auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint)
+
+    from blueprints.dashboard import dashboard as dashboard_blueprint
+    app.register_blueprint(dashboard_blueprint)
+
+    from blueprints.images import api as api_blueprint
+    app.register_blueprint(api_blueprint)
+    return app
 
 
 if __name__ == '__main__':
-    run_simple("0.0.0.0", configuration.port, application, use_debugger=True, ssl_context='adhoc') 
+    application = DispatcherMiddleware(NotFound(), {"/image_creation": create_app()})
+    run_simple("0.0.0.0", configuration.port, application, use_debugger=True, ssl_context='adhoc', threaded=True) 

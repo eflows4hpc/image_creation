@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flask Auth Example</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous"/>
+    
+</head>
+<style>
+.button.is-orange{
+    background-color: #ff8606;
+    border-color: transparent;
+    color: #fff;
+}
+</style>
+<!--script src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/js/all.min.js'>
+</script-->
+<body>
+    <nav class="navbar is-info has-shadow">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="https://eflows4hpc.eu/">
+                    <img loading="lazy" width="210" height="60" src="https://eflows4hpc.eu/wp-content/uploads/2021/02/logo-blanc_1-1.svg">
+                </a>
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenuHeroA">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+            
+            
+            <div id="navbarMenuHeroA" class="navbar-menu">
+                <div class="navbar-end">
+                    <a href="{{ url_for('dashboard.profile') }}" class="navbar-item">
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="navbar-item">
+                        Login
+                    </a>
+                    <a href="{{ url_for('auth.signup') }}" class="navbar-item">
+                        Sign Up
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="navbar-item">
+                        Logout
+                    </a>
+                </div>
+            </div>
+    </nav>
+    <section class="main-content columns is-fullwidth is-fullheight">
+
+
+                <aside class="column is-3 is-narrow-mobile is-fullheight section is-hidden-mobile">
+                    <p class="menu-label is-hidden-touch">Navigation</p>
+                    <ul class="menu-list">
+                      <li>
+                        <a href="#" class="">
+                          <span class="icon"><i class="fas fa-home"></i></span> Home
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#" class="">
+                          <span class="icon"><i class="fas fa-cog"></i></span> Builds
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#" class="">
+                          <span class="icon"><i class="fas fa-layer-group"></i></span> Images
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#" class="">
+                          <span class="icon"><i class="fas fa-user"></i></span> Account
+                        </a>
+                      </li>
+                    </ul>
+                </aside>
+                
+                <div class="section column is-9">
+                        <h1 class="title">Welcome {{name}} to the eflows4HPC Container Image Creation Service</h1>
+                        <div class="columns">
+                            <div class="column">
+                                <a href="#" class="button is-orange is-large column">
+                                Build requests
+                                </a>
+                            </div>
+                            <div class="column">
+                                <a href="#" class="button is-orange is-large column">
+                                Available Images
+                                </a>
+                            </div>
+                        </div>
+                        
+                </div>
+                  
+            <!--/div>
+        </div-->
+    </section>
+</body>
+
+

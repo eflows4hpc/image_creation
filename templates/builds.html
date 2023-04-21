@@ -1,0 +1,34 @@
+{% extends "dashboard.html" %}
+
+{% block dashboard %}
+<h1 class="title">Requested Image Creations Service</h1>
+<a class="button is-small" href="{{ url_for('dashboard.new_build') }}">+ New Request</a>
+<table class="table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Image Identifier</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for build in builds %}
+        <tr>
+          <td>{{ build.id }}</td>
+          <input type="hidden" name="build_id" value="{{ build.id }}">
+          <td>{{ build.image }}</td>
+          <td>{{ build.status }}</td>
+          <td>
+            <a class="button is-small" href="{{url_for('dashboard.get_build', id=build.id)}}">Details</a>
+            {% if build.status != 'PENDING'%}
+            <a class="button is-small" href="{{url_for('dashboard.get_build_logs', id=build.id)}}">Logs</a>
+            {% endif %}
+            <a class="button is-small" href="{{url_for('dashboard.delete_build', id=build.id)}}"><i class="fas fa-trash-alt"></i></a>
+          </td>
+          
+        </tr>
+      {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

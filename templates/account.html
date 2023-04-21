@@ -1,0 +1,60 @@
+{% extends "dashboard.html" %}
+
+{% block dashboard %}
+<h1 class="title">{{name}} account management</h1>
+<div class="card">
+    <div class="card-header">
+        <p class="card-header-title">Password Update</p>
+    </div>
+    <div class="card-content">
+        <div class="content">
+            {% if password %}
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}.
+            </div>
+            {% else %}
+            <div class="notification is-sucess is-light">
+                Password succesfully changed.
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+            <form method="POST" action="{{ url_for('dashboard.update_password') }}">
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="password" name="new_password" placeholder="New Password">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="password" name="old_password" placeholder="Retype Password">
+                    </div>
+                </div>
+
+                <button class="button is-block is-info is-large is-fullwidth">Update</button>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header">
+        <p class="card-header-title">Generate API Token</p>
+    </div>
+    <div class="card-content">
+        <div class="content">
+            {% if token %}
+            Generated token:
+            <div class="notification is-sucess is-light">
+                {{token}}
+            </div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('dashboard.generate_token') }}">
+
+                <button class="button is-block is-info is-large is-fullwidth">Generate</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

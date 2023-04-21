@@ -1,0 +1,28 @@
+{% extends "dashboard.html" %}
+
+{% block dashboard %}
+<h1 class="title">Available Images</h1>
+<table class="table">
+    <thead>
+      <tr>
+        <th>Image Identifier</th>
+        <th>Singularity</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for image in images %}
+        <tr>
+          <th>{{image.id}}</th>
+          {% if image.filename%}
+          <td>{{image.filename}}</td>
+          <td><a class="button is-small" href="{{url_for('download_image', name=image.filename)}}"><i class="fas fa-download"></i></a></td>
+          {% else %}
+          <td></td>
+          <td></td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
