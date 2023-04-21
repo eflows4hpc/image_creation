@@ -29,7 +29,7 @@ CAPTCHA_SERVER_KEY= configuration.captcha_site_key
 builder = ImageBuilder(configuration.repositories_cfg, configuration.build_cfg, configuration.registry_cfg)
 
 db = SQLAlchemy(app)
-
+#db.session().expire_on_commit = False
 #Basic Auth for API
 auth = HTTPBasicAuth()
 
@@ -206,7 +206,6 @@ def build_image (workflow, step_id, version, machine, force, user):
             db.session.add(workflow_orm)
             image = Image(id=image_id, machine=machine_orm, workflow=workflow_orm)
             db.session.add(image)
-            db.session.commit()
             build_id = str(uuid.uuid4())
             build = Build(id=build_id, status=PENDING, machine=machine_orm,
                           workflow=workflow_orm, image=image_id)
@@ -241,8 +240,6 @@ def build_image (workflow, step_id, version, machine, force, user):
                 user.builds.append(build)
                 with no_expire():
                     db.session.commit()
-                db.session.expunge(workflow_orm)
-                db.session.expunge(machine_orm)
                 builder.request_build(build_id, image_id, workflow_orm, machine_orm,
                                   singularity, force, _update_build, _update_image)
         return build_id
