@@ -199,7 +199,7 @@ def build_image (workflow_name, step_id, version, machine, force, user):
         machine_orm = Machine(platform=machine['platform'], architecture=machine['architecture'], mpi=machine.get('mpi', None), gpu=machine.get('gpu', None))
         workflow_orm = Workflow(name=workflow, step=step_id, version=version)
 
-        image_id = builder.gen_image_id(workflow_orm, machine_orm)
+        image_id = builder.gen_image_id(workflow, machine)
         image = Image.query.get(image_id)
         if image is None:
             # If there is not an image add and build
