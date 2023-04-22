@@ -235,7 +235,7 @@ def build_image (workflow_name, step_id, version, machine, force, user):
                 db.session.add(workflow_orm)
                 build_id = str(uuid.uuid4())
                 build = Build(id=build_id, status=PENDING,
-                              machine=machine, workflow=workflow, image=image_id)
+                              machine=machine_orm, workflow=workflow_orm, image=image_id)
                 db.session.add(build)
                 user.builds.append(build)
                 db.session.commit()
