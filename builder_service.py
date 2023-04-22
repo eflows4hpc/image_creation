@@ -197,7 +197,7 @@ def build_image (workflow_name, step_id, version, machine, force, user):
             version = 'latest'
         workflow = {"name" : workflow_name, "step" : step_id, "version" : version}
         machine_orm = Machine(platform=machine['platform'], architecture=machine['architecture'], mpi=machine.get('mpi', None), gpu=machine.get('gpu', None))
-        workflow_orm = Workflow(name=workflow, step=step_id, version=version)
+        workflow_orm = Workflow(name=workflow_name, step=step_id, version=version)
 
         image_id = builder.gen_image_id(workflow, machine)
         image = Image.query.get(image_id)
