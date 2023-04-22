@@ -130,7 +130,7 @@ class ImageBuilder:
         dockerfile = os.path.join(tmp_folder, "Dockerfile")
         shutil.copy(self.dockerfile_base, dockerfile)
         build_command = self._get_builder(machine)
-        command = [self.builder_script, image_id, tmp_folder, machine.platform,
+        command = [self.builder_script, image_id, tmp_folder, machine['platform'],
             self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command, str(force)]
         logger.info("Running build " + str(command))
         utils.run_commands([' '.join(command)], logger=logger)
@@ -157,7 +157,7 @@ class ImageBuilder:
         utils.run_commands([' '.join(command)], env=env, logger=logger)
     
     def gen_image_id(self, workflow, machine):
-        if workflow.step is None:
+        if workflow['step'] is None:
             image_id = self.base_image
         else:
             image_id = self.container_registry["images_prefix"] + self._gen_image_name(workflow,machine)
@@ -165,7 +165,7 @@ class ImageBuilder:
 
     def _gen_image_name(self, workflow, machine):
         #return workflow.name + '_' + workflow.step + '_' + machine.architecture +':'+ workflow.version
-        return workflow.step + '_' + machine.architecture +':'+ workflow.version
+        return workflow['step'] + '_' + machine['architecture'] +':'+ workflow['version']
 
     def _get_build_folder(self, build_id):
         return os.path.join(self.builds_location, build_id)
@@ -202,7 +202,7 @@ class ImageBuilder:
             if rd is None:
                 logger.info("IB: Building Image")
                 update_build_func(id=build_id, status=BUILDING)
-                if workflow.step is None:
+                if workflow.get('step') is None:
                     logger.info("IB: Building Base Image")
                     self._build_base_and_push(logger, tmp_folder, image_id, machine, force)
                 else:

@@ -183,18 +183,19 @@ def download_image (name):
         abort(404, "File " + name + " not found" )
     return send_file(path, as_attachment=True)
 
-def build_image (workflow, step_id, version, machine, force, user):
+def build_image (workflow_name, step_id, version, machine, force, user):
     try:
         if machine['container_engine'] == 'singularity':
             singularity = True
         else:
             singularity = False
-
-        if workflow == 'BASE' and step_id == 'BASE':
-            workflow = None
+        
+        if workflow_name == 'BASE' and step_id == 'BASE':
+            workflow_name = None
             step_id = None
         if version is None:
             version = 'latest'
+        workflow = {"name" : workflow_name, "step" : step_id, "version" : version}
         machine_orm = Machine(platform=machine['platform'], architecture=machine['architecture'], mpi=machine.get('mpi', None), gpu=machine.get('gpu', None))
         workflow_orm = Workflow(name=workflow, step=step_id, version=version)
 
@@ -212,9 +213,8 @@ def build_image (workflow, step_id, version, machine, force, user):
             db.session.add(build)
             user = db.session.query(User).get(user.id)
             user.builds.append(build)
-            with no_expire():
-                db.session.commit()
-            builder.request_build(build_id, image_id, workflow_orm, machine_orm,
+            db.session.commit()
+            builder.request_build(build_id, image_id, workflow, machine,
                               singularity, force, _update_build, _update_image)
         else:
             # If there is an image check if it is currently building it
@@ -235,12 +235,11 @@ def build_image (workflow, step_id, version, machine, force, user):
                 db.session.add(workflow_orm)
                 build_id = str(uuid.uuid4())
                 build = Build(id=build_id, status=PENDING,
-                              machine=machine_orm, workflow=workflow_orm, image=image_id)
+                              machine=machine, workflow=workflow, image=image_id)
                 db.session.add(build)
                 user.builds.append(build)
-                with no_expire():
-                    db.session.commit()
-                builder.request_build(build_id, image_id, workflow_orm, machine_orm,
+                db.session.commit()
+                builder.request_build(build_id, image_id, workflow, machine,
                                   singularity, force, _update_build, _update_image)
         return build_id
     except Exception as e:
