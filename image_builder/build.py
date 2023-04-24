@@ -52,7 +52,7 @@ class ImageBuilder:
     def _update_dockerfile(self, tmp_folder, step_id, machine):
         #TODO: Change build according to building system (spack/easybuild)
         dockerfile = os.path.join(tmp_folder, "Dockerfile")
-        to_replace = {"%BASE_IMG%": self.base_image,"%ARCH%": machine.architecture, "%APPDIR%": step_id, "%CFG_DIR%": self.spack_cfg}
+        to_replace = {"%BASE_IMG%": self.base_image,"%ARCH%": machine['architecture'], "%APPDIR%": step_id, "%CFG_DIR%": self.spack_cfg}
         utils.replace_in_file(self.dockerfile_template, dockerfile, to_replace)
        
     def _get_builder(self, machine):
@@ -68,8 +68,8 @@ class ImageBuilder:
         with open(os.path.join(workflow_folder_path,"spack.yaml"),'r') as file:
             environment = yaml.full_load(file)
         if 'spack' in environment:
-            if machine.architecture:
-                arch = machine.architecture
+            if 'architecture' in machine:
+                arch = machine['architecture']
                 target = []
                 target.append(arch)
                 if 'packages' in environment['spack']:
@@ -77,16 +77,16 @@ class ImageBuilder:
                         environment['spack']['packages']['all']['target'] = target
                 else:
                     environment['spack']['packages']={'all': {'target': target }}
-            if machine.mpi:
+            if 'mpi' in machine:
                 if 'specs' in environment['spack']:
-                    environment['spack']['specs'].append(machine.mpi)
+                    environment['spack']['specs'].append(machine['mpi'])
                 else:
-                    environment['spack']['specs'] = [machine.mpi]
-            if machine.gpu:
+                    environment['spack']['specs'] = [machine['mpi']]
+            if 'gpu' in machine:
                 if 'specs' in environment['spack']:
-                    environment['spack']['specs'].append(machine.gpu)
+                    environment['spack']['specs'].append(machine['gpu'])
                 else:
-                    environment['spack']['specs'] = [machine.gpu]
+                    environment['spack']['specs'] = [machine['gpu']]
             environment['spack']['concretizer'] = {'unify': True}
             environment['spack']['view'] = "/opt/view"
         else:
@@ -96,8 +96,8 @@ class ImageBuilder:
 
     def _generate_build_environment(self, logger, tmp_folder, workflow, machine):
         # TODO add version
-        workflow_repo_path = os.path.join(self.workflow_repository,workflow.name,workflow.step)
-        workflow_folder_path = os.path.join(tmp_folder, workflow.step)
+        workflow_repo_path = os.path.join(self.workflow_repository,workflow['name'],workflow['step'])
+        workflow_folder_path = os.path.join(tmp_folder, workflow['step'])
         logger.info("Copying file " )
         shutil.copytree(workflow_repo_path, workflow_folder_path)
         self._update_configuration(workflow_folder_path, machine)
@@ -107,7 +107,7 @@ class ImageBuilder:
         shutil.copytree(self.spack_cfg, spack_cfg_path)
         packages_path = os.path.join(tmp_folder, "packages")
         shutil.copytree(self.packages_location, packages_path)
-        self._update_dockerfile(tmp_folder, workflow.step, machine)
+        self._update_dockerfile(tmp_folder, workflow['step'], machine)
 
     def _build_image_and_push(self, logger, tmp_folder, workflow, image_id, machine, force):
  
@@ -116,7 +116,7 @@ class ImageBuilder:
         
         build_command = self._get_builder(machine)
         
-        command = [self.builder_script, image_id, tmp_folder, machine.platform,
+        command = [self.builder_script, image_id, tmp_folder, machine['platform'],
             self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command, str(force)]
         logger.info("Running build")
         utils.run_commands([' '.join(command)], logger=logger)
