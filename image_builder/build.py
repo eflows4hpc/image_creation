@@ -56,7 +56,7 @@ class ImageBuilder:
         utils.replace_in_file(self.dockerfile_template, dockerfile, to_replace)
        
     def _get_builder(self, machine):
-        if machine.platform == 'linux/amd64':
+        if machine['platform'] == 'linux/amd64':
             return "build"
         else:
             return "buildx build"
