@@ -111,7 +111,7 @@ class ImageBuilder:
 
     def _build_image_and_push(self, logger, tmp_folder, workflow, image_id, machine, force):
  
-        self._generate_build_environment(self, logger, tmp_folder, workflow, machine)
+        self._generate_build_environment( logger, tmp_folder, workflow, machine)
         logger.info("Generating run command")
         
         build_command = self._get_builder(machine)
