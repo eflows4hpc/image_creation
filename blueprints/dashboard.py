@@ -10,6 +10,11 @@ dashboard = Blueprint('dashboard', __name__)
 def home():
     return render_template('main.html')
 
+@dashboard.route('/')
+@login_required
+def index():
+    return render_template('main.html')
+
 @dashboard.route('/builds', methods=['GET'])
 @login_required
 def get_builds():
@@ -88,7 +93,7 @@ def generate_token():
 @dashboard.route('/account')
 @login_required
 def account():
-    return render_template('account.html')
+    return render_template('account.html', name=current_user.username)
 
 @dashboard.route('/account/update', methods=['POST'])
 @login_required

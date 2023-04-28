@@ -65,4 +65,5 @@ def captcha_validation(captcha_response):
 @login_required
 def logout():
     logout_user()
-    return 'Logout'
+    flash("Logout Successful")
+    return redirect(url_for('auth.login'))

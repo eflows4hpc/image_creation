@@ -2,7 +2,9 @@
 
 {% block dashboard %}
 <h1 class="title">Requested Image Creations Service</h1>
-<a class="button is-small" href="{{ url_for('dashboard.new_build') }}">+ New Request</a>
+<a class="button is-small" href="{{ url_for('dashboard.new_build') }}"><i class="fas fa-plus"></i>&nbsp New Request</a>
+<a class="button is-small" href="{{ url_for('dashboard.get_builds') }}"><i class="fas fa-sync-alt"></i>&nbsp Refresh</a>
+<a class="button is-small" href="{{ url_for('dashboard.home') }}"><i class="fas fa-home"></i>&nbsp Home</a>
 <table class="table">
     <thead>
       <tr>

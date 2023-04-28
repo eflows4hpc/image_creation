@@ -2,9 +2,17 @@
 
 {% block dashboard %}
 <h1 class="title">Build Request {{build.id}} </h1>
-    <div class="card"><div class="card-header">
+<a class="button is-small" href="{{ url_for('dashboard.get_builds') }}">Builds</a>
+<a class="button is-small" href="{{ url_for('dashboard.get_build', id=build.id) }}"><i class="fas fa-sync-alt"></i>&nbsp Refresh</a>
+{% if build.status != 'PENDING'%}
+    <a class="button is-small" href="{{url_for('dashboard.get_build_logs', id=build.id)}}">Logs</a>
+{% endif %}
+ <a class="button is-small" href="{{url_for('dashboard.delete_build', id=build.id)}}"><i class="fas fa-trash-alt"></i></a>
+
+<div class="card"><div class="card-header">
     <p class="card-header-title">Build Description</p>
 </div>
+
 <div class="card-content">
     <div class="content">
         <div class="field">

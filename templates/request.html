@@ -10,6 +10,7 @@
 </div>
 {% endif %}
 {% endwith %}
+<a class="button is-small" href="{{ url_for('dashboard.home') }}"><i class="fas fa-home"></i>&nbsp Home</a>
 <form method="POST" action="{{ url_for('dashboard.run_build') }}">
     <div class="card">
         <div class="card-header">

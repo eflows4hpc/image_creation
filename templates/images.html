@@ -2,6 +2,8 @@
 
 {% block dashboard %}
 <h1 class="title">Available Images</h1>
+<a class="button is-small" href="{{ url_for('dashboard.get_images') }}"><i class="fas fa-sync-alt"></i>&nbsp Refresh</a>
+<a class="button is-small" href="{{ url_for('dashboard.home') }}"><i class="fas fa-home"></i>&nbsp Home</a>
 <table class="table">
     <thead>
       <tr>

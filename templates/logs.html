@@ -2,8 +2,11 @@
 
 {% block dashboard %}
 <h1 class="title">Image Creation Logs for build {{id}}</h1>
-<button onclick="update()">Refresh</button><pre id="output"></pre>
-
+<a class="button is-small" href="{{ url_for('dashboard.home') }}"><i class="fas fa-home"></i>&nbsp Home</a>
+<a class="button is-small" href="{{ url_for('dashboard.get_build', id=id) }}"><i class="fas fa-info"></i>&nbsp Details</a>
+<a class="button is-small" onclick="update()"><i class="fas fa-sync-alt"></i>&nbsp Refresh</a>
+<pre id="output"></pre>
+<a class="button is-small" onclick="update()"><i class="fas fa-sync-alt"></i>&nbsp Refresh</a>
 <script>
     var output = document.getElementById('output');
     
