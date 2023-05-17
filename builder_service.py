@@ -196,6 +196,7 @@ def build_image (workflow_name, step_id, version, machine, force, user):
         if version is None:
             version = 'latest'
         workflow = {"name" : workflow_name, "step" : step_id, "version" : version}
+        check_machine(machine)
         machine_orm = Machine(platform=machine['platform'], architecture=machine['architecture'], mpi=machine.get('mpi', None), gpu=machine.get('gpu', None))
         workflow_orm = Workflow(name=workflow_name, step=step_id, version=version)
 
@@ -249,7 +250,12 @@ def build_image (workflow_name, step_id, version, machine, force, user):
 
 def check_image_currently_build(image_id):
     return Build.query.filter(Build.image==image_id, Build.status.in_([PENDING,STARTED,BUILDING,CONVERTING])).first()
-    
+
+def check_machine(machine):
+    architectures = ['skylake', 'sandybridge']
+    if not machine['architecture'] in architectures:
+        flash("Unavailable architecture")
+        raise Exception("The specified architecture does not exist or it has been temporaly disabled")
 
 def _update_build(id, status, image=None, filename=None, message=None):
     build = Build.query.get(id)
