@@ -2,5 +2,6 @@ docker
 Flask
 Flask-HTTPAuth
 Flask-SQLAlchemy
+Flask-Login
 PyJWT
 pyyaml
