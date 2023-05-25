@@ -176,12 +176,8 @@ def update_password():
     return jsonify({ "Response" : "Updated" }, 202)
 '''
 
-@app.route('/images/download/<name>')
-def download_image (name):
-    path = builder.get_filename(name)
-    if path is None:
-        abort(404, "File " + name + " not found" )
-    return send_file(path, as_attachment=True)
+def image_path (name):
+    return builder.get_filename(name)
 
 def build_image (workflow_name, step_id, version, machine, force, user):
     try:
@@ -297,7 +293,7 @@ def remove_build(id):
 def get_build(id):
     return Build.query.get(id)
 
-def create_app():
+def create_app(download_image=False):
     login_manager.init_app(app)
 
     from blueprints.auth import auth as auth_blueprint
@@ -308,9 +304,14 @@ def create_app():
 
     from blueprints.images import api as api_blueprint
     app.register_blueprint(api_blueprint)
+    
+    if download_image:
+        from blueprints.download import download as download_blueprint
+        app.register_blueprint(download_blueprint)
+    
     return app
 
 
 if __name__ == '__main__':
-    application = DispatcherMiddleware(NotFound(), {"/image_creation": create_app()})
+    application = DispatcherMiddleware(NotFound(), {"/image_creation": create_app(True)})
     run_simple("0.0.0.0", configuration.port, application, use_debugger=True, ssl_context='adhoc', threaded=True) 

@@ -18,7 +18,7 @@
           <th>{{image.id}}</th>
           {% if image.filename%}
           <td>{{image.filename}}</td>
-          <td><a class="button is-small" href="{{url_for('download_image', name=image.filename)}}"><i class="fas fa-download"></i></a></td>
+          <td><a class="button is-small" href="images/download/{{image.filename}}"><i class="fas fa-download"></i></a></td>
           {% else %}
           <td></td>
           <td></td>

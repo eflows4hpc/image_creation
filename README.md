@@ -38,6 +38,19 @@ Finally, start the service with the following command
 $ python3 builder_service.py
 ```
 
+For production runs we recommend to use production WGSY servers. Next instructions are explained for mod_wsgi-express.
+First you have to install the mod_wsgi-express software
+
+```
+$ sudo apt install apache2-dev
+$ sudo pip install mod_wsgi
+```
+
+Start the service using the following command. (Customize it according to your machine configuration)
+
+```
+mod_wsgi-express start-server --port 5000 --processes=4 --enable-sendfile --url-alias /image_creation/images/download </path/to/tmp>/images/ wsgi.py
+```
 
 ## API
 
