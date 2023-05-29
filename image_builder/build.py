@@ -119,7 +119,7 @@ class ImageBuilder:
         command = [self.builder_script, image_id, tmp_folder, machine['platform'],
             self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command, str(force)]
         logger.info("Running build")
-        utils.run_commands([' '.join(command)], logger=logger)
+        utils.run_commands([' '.join(command)], logger=logger, check_error=True)
         #print("Removing tmp_folder")
         #command = ["rm","-rf", tmp_folder]
         #utils.run_commands([' '.join(command)])

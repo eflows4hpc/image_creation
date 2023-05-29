@@ -3,17 +3,28 @@ import shutil
 import os
 import sys
 
-def run_commands(commands, logger = None, **kwargs):
+def run_commands(commands, logger = None, check_error = False, **kwargs):
     cmd = ' && '.join(commands)
     res = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)
+    error = False
     for line in iter(res.stdout.readline, b''):
         if logger:
-            logger.info(line.decode("utf-8").strip())
+            line = line.decode("utf-8").strip()
+            logger.info(line)
         else:
-            sys.stdout.write(line.decode(sys.stdout.encoding)) 
+            line = line.decode(sys.stdout.encoding)
+            sys.stdout.write(line) 
+        if check_error:
+            error = error or checkError(line)
     res.wait()
     if res.returncode != 0 :
         raise subprocess.CalledProcessError(res.returncode, res.args)
+    if error:
+        raise Exception("Error message in the execution")
+
+def checkError(line):
+    return "error:" in line.lower()
+
 
 
 def ssh_run_commands(login_info, commands, key=None, **kwargs):
