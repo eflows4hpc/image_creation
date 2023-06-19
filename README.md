@@ -195,3 +195,16 @@ To run the local execution you have to run the following command:
 ```
 $ image_creation > python3 cic_builder.py --request /path/to/json_file
 ```
+
+## Debugging the Spack packages
+
+The Container Image Creation uses Spack to install HPC software. Testing the installation of the whole workflow dependencies can take some time. So debugging new packages with the Container Image Creation will be difficult due to the long times to get feedback. For reducing this time, we provide a set of commands to set-up a Docker environment to test the installation in the same way that the CIC does in the service.
+
+```
+$ docker run -it -v /path/to/software-catalog/:/software-catalog
+-v
+/path/to/software/software-catalog/cfg:/root/.spack
+--platform linux/amd64 ghcr.io/eflows4hpc/spack_base:0.19.2
+
+$ spack install -v <your package>
+```
