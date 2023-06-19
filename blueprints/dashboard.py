@@ -64,17 +64,21 @@ def run_build():
     try:
         machine = {}
         machine['platform'] = request.form.get('platform')
-        machine['architecture'] = request.form.get('architecture')
+        machine['architecture'] = request.form.get('architecture').strip()
         machine['container_engine'] = request.form.get('container_engine')
-        machine['mpi'] = request.form.get('mpi')
-        machine['gpu'] = request.form.get('gpu')
-        wf_name = request.form.get('wf_name')
-        wf_step = request.form.get('wf_step')
-        version = 'latest'
+        machine['mpi'] = request.form.get('mpi').strip()
+        machine['gpu'] = request.form.get('gpu').strip()
+        wf_name = request.form.get('wf_name').strip()
+        wf_step = request.form.get('wf_step').strip()
+        version = request.form.get('wf_version').strip()
+        if version is None or version == "" :
+            version = 'latest'
         force = False
-        build_id = build_image (wf_name, wf_step, version, machine, force, current_user)
+        push = True
+        build_id = build_image (wf_name, wf_step, version, machine, force, push, current_user)
         return redirect(url_for('dashboard.get_build', id=build_id))
     except Exception as e:
+        flash("Error submitting request" + str(e))
         return render_template('request.html', form=request.form)
 
 

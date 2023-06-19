@@ -17,6 +17,7 @@ import traceback
 from config import configuration
 from image_builder.build import ImageBuilder 
 from image_builder.build import PENDING,STARTED,BUILDING,CONVERTING
+from image_builder.utils import check_machine
 
 app = Flask(__name__)
 app.config['APPLICATION_ROOT'] = configuration.application_root
@@ -179,7 +180,7 @@ def update_password():
 def image_path (name):
     return builder.get_filename(name)
 
-def build_image (workflow_name, step_id, version, machine, force, user):
+def build_image (workflow_name, step_id, version, machine, force, push, user):
     try:
         if machine['container_engine'] == 'singularity':
             singularity = True
@@ -246,12 +247,6 @@ def build_image (workflow_name, step_id, version, machine, force, user):
 
 def check_image_currently_build(image_id):
     return Build.query.filter(Build.image==image_id, Build.status.in_([PENDING,STARTED,BUILDING,CONVERTING])).first()
-
-def check_machine(machine):
-    architectures = ['skylake', 'sandybridge']
-    if not machine['architecture'] in architectures:
-        flash("Unavailable architecture")
-        raise Exception("The specified architecture does not exist or it has been temporaly disabled")
 
 def _update_build(id, status, image=None, filename=None, message=None):
     build = Build.query.get(id)

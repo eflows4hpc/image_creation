@@ -9,11 +9,21 @@ COPY packages /packages
 
 WORKDIR /packages
 
-RUN  spack -C /.spack find && cat /%APPDIR%/spack.yaml \
+RUN echo "Installing apt-get packages" && %APTGET_INSTALL%
+
+RUN [ ! /%APPDIR%/spack.yaml ] && echo "No spack environment to install" || echo "Installing spack packages" && spack -C /.spack find && cat /%APPDIR%/spack.yaml \
     && spack -C /.spack -e /%APPDIR% install --fail-fast --no-checksum --keep-stage -j2 \
     && [ -f /%APPDIR%/post_inst.sh ] && sh /%APPDIR%/post_inst.sh || echo "Nothing else to do"; spack gc -y
     # && spack -C /.spack mirror add binary_mirror_dev https://binaries.spack.io/develop \
     # && spack -C /.spack buildcache keys --install --trust \
 
-RUN  echo ". /opt/spack/share/spack/setup-env.sh && cd /%APPDIR% && spack -C /.spack env activate ." >> /etc/profile.d/z10_spack_environment.sh
+
+RUN  spack -C /.spack env activate /%APPDIR% --sh >> /etc/profile.d/z10_spack_environment.sh && \
+    echo "export PYTHONPATH=/opt/view/local/lib/python3.10/site-packages/:\$PYTHONPATH" >> /etc/profile.d/z10_spack_environment.sh
+
+SHELL ["/bin/bash", "--login", "-c"] 
+
+RUN echo "Installing pip packages" && source /etc/profile.d/z10_spack_environment.sh && env && ls -l /opt/view/local/lib/python3.10/dist-packages && %PIP_INSTALL%
+
+#RUN  echo ". /opt/spack/share/spack/setup-env.sh && cd /%APPDIR% && spack -C /.spack env activate ." >> /etc/profile.d/z10_spack_environment.sh
 

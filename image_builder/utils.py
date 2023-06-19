@@ -3,6 +3,31 @@ import shutil
 import os
 import sys
 
+SPACK_ARCHITECTURES = [  "aarch64", "armv8.1a", "armv8.3a", "armv8.5a", "ppc64", "ppcle", "sparc", "x86", "x86_64",
+    "x86_64_v3", "x86_64_v2", "x86_64_v4", "arm", "armv8.2a", "armv8.4a", "ppc", "ppc64le", "riscv64", "sparc64", 
+    "i686", "pentium2", "pentium3", "pentium4", "prescott", "nocona", "nehalem", "sandybridge", "haswell", "skylake",
+    "cannonlake", "cascadelake", "core2", "westmere", "ivybridge", "broadwell", "mic_knl", "skylake_avx512", "icelake",
+    "k10", "bulldozer", "piledriver", "zen", "steamroller", "zen2", "zen3", "excavator", "zen4", "power7", "power8",
+    "power9", "power8le", "power9le", "thunderx2", "a64fx", "cortex_a72", "neoverse_n1", "neoverse_v1", "m1", "m2", "u74mc"]
+
+def check_machine(machine):
+    if not machine['architecture'] in SPACK_ARCHITECTURES:
+        raise Exception("The specified architecture does not exist or it has been temporaly disabled")
+
+
+def check_bool(content, key, default):
+    if key in content:
+        value = content[key]
+        if isinstance(value, str):
+            value = value.lower() == 'true'
+        elif not isinstance(value, bool):
+            print("Bad request: " + key + " should be True or False")
+            exit(1)
+    else :
+        value = default
+    return value
+
+
 def run_commands(commands, logger = None, check_error = False, **kwargs):
     cmd = ' && '.join(commands)
     res = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kwargs)

@@ -8,9 +8,9 @@ import wget
 
 ssl_verify = False
 # Local test
-# url = "https://localhost:5000/image_creation"
+url = "https://localhost:5000/image_creation"
 
-url = "https://bscgrid20.bsc.es/image_creation"
+#url = "https://bscgrid20.bsc.es/image_creation"
 
 
 
@@ -22,7 +22,7 @@ js_build_request = {"machine": {"platform": "linux/amd64", "architecture": "rome
 
 #image_creation credentials
 user="test"
-pswd="*****"
+pswd="T3st22"
 
 download_path="/home/jorgee/Downloads/"
 
@@ -45,21 +45,23 @@ print("Login successfull. Token:" + token)
 auth_u_p = HTTPBasicAuth(token,None)
 
 # Build of the base image. - Commented because THIS IS JUST REQUIRED FIRST TIME -
-
-# js_base_build_request = js_build_request = {"machine": {"platform": "linux/amd64", "architecture": "skylake", "container_engine": "docker"},
+#container_engine = "docker"
+#js_base_build_request = {"machine": {"platform": "linux/amd64", "architecture": "skylake", "container_engine": container_engine},
 # "workflow": "BASE",
 # "step_id" : "BASE",
-# "force": False}
+# "force": True}
 
+# Base Image creation
 #res = requests.post(url+'/build/', json=js_base_build_request, verify=ssl_verify, auth=auth_u_p)
 
 # build workflow image
 container_engine = "singularity"
-js_build_request = {"machine": {"platform": "linux/amd64", "architecture": "rome", "container_engine": container_engine},
-"workflow":"minimal_workflow",
-"step_id" :"wordcount",
+js_build_request = {"machine": {"platform": "linux/amd64", "architecture": "skylake", "container_engine": container_engine},
+"workflow":"kaust_test",
+"step_id" :"exageostat",
 "force": False}
 
+#s Other Image creation
 res = requests.post(url+'/build/', json=js_build_request, verify=ssl_verify, auth=auth_u_p)
 
 # Check result of the call and get the build id

@@ -9,13 +9,10 @@ This service requires to have Docker buildx system in the computer where running
 $ pip install -r requirements.txt
 ```
 
-Finally, clone the workflow registry and software catalog repositories
+Finally, clone the software catalog repositories
 
 ```
-$ git clone https://github.com/eflows4hpc/workflow-registry.git
-
 $ git clone https://github.com/eflows4hpc/software-catalog.git
-
 ```
 
 ## Installation and configuration
@@ -25,17 +22,26 @@ Once you have installed the requirements clone the Container Image Creation repo
 ```
 $ git clone https://github.com/eflows4hpc/image_creation.git
 ```
-Modify the image creation configuration, provinding the information for accessing the container registry and the loaction where the workflow registry or the software catalog has been donwloaded
+Modify the image creation configuration, provinding the information for accessing the container registry and the Google captcha as well as the location where the software catalog has been donwloaded and the directory where images will be created.
 
 ```
 $ cd image_creation
-$ vim config/configuration.py
+$ image_creation > vim config/configuration.py
+```
+
+Create the database
+
+```
+$ image_creation > python3
+>>> from builder_service import db
+>>> db.drop_all()
+>>> db.create_all()
 ```
 
 Finally, start the service with the following command
 
 ```
-$ python3 builder_service.py
+$ image_creation > python3 builder_service.py
 ```
 
 For production runs we recommend to use production WGSY servers. Next instructions are explained for mod_wsgi-express.
@@ -49,7 +55,7 @@ $ sudo pip install mod_wsgi
 Start the service using the following command. (Customize it according to your machine configuration)
 
 ```
-mod_wsgi-express start-server --port 5000 --processes=4 --enable-sendfile --url-alias /image_creation/images/download </path/to/tmp>/images/ wsgi.py
+$ image_creation> mod_wsgi-express start-server --port 5000 --processes=4 --enable-sendfile --url-alias /image_creation/images/download </path/to/tmp>/images/ wsgi.py
 ```
 
 ## API
@@ -159,4 +165,33 @@ Length: 2339000320 (2.2G) [application/octet-stream]
 Saving to: ‘reduce_order_model_sandybridge.sif’
 
 reduce_order_model_sandybridge.sif        0%[                          ]   4.35M   550KB/s    eta 79m 0s
+```
+## Using Image Creation as library
+
+Image creation can be also used in a laptop without a service interface.
+
+The installation procedure is almost the same as when deploying as a service. You need to install the requirements-library.txt, clone the software-catalog repository and fill the configuration file.
+
+To build a container image you have to specify a JSON file with the machine information and the workflow reference (name, step and version) in the Workflow Registry as you do in the CLI. You can also refer to a local workflow indicating the path in your localhost where we can fin the description. In this case, you must also specify a name, step and version to generate an image id to refer to the created image. Moreover you can also indicate if you want to push the generated image to the repository or just keep in your local repository. An example of this JSON file is shown below.
+
+
+```json
+{
+  "machine": {
+    "platform": "linux/amd64", 
+    "architecture": "rome", 
+    "container_engine": "singularity",
+    "mpi": "openmpi@4"},
+  "workflow" : "tutorial" ,
+  "step_id" : "lysozyme",
+  "path" : "/path/to/description/",
+  "force": False,
+  "push" : False
+}
+```
+
+To run the local execution you have to run the following command:
+
+```
+$ image_creation > python3 cic_builder.py --request /path/to/json_file
 ```
