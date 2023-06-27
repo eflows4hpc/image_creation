@@ -7,7 +7,7 @@ registry_cfg = {
     }
     
 repositories_cfg = {
-    "workflow_repository":"/path/to/workflow-registry/",
+    "workflow_repository":"https://github.com/eflows4hpc/workflow-registry.git" 
     "software_repository":"/path/to/software-catalog/" 
     }
 
