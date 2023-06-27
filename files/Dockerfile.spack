@@ -23,7 +23,7 @@ RUN  spack -C /.spack env activate /%APPDIR% --sh >> /etc/profile.d/z10_spack_en
 
 SHELL ["/bin/bash", "--login", "-c"] 
 
-RUN echo "Installing pip packages" && source /etc/profile.d/z10_spack_environment.sh && env && ls -l /opt/view/local/lib/python3.10/dist-packages && %PIP_INSTALL%
+RUN echo "Installing pip packages" && source /etc/profile.d/z10_spack_environment.sh && %PIP_INSTALL%
 
 #RUN  echo ". /opt/spack/share/spack/setup-env.sh && cd /%APPDIR% && spack -C /.spack env activate ." >> /etc/profile.d/z10_spack_environment.sh
 
