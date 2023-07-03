@@ -87,7 +87,7 @@ class ImageBuilder:
         if machine['platform'] == 'linux/amd64':
             return "build"
         else:
-            return "buildx build"
+            return "buildx"
 
     def _update_configuration(self, workflow_folder_path, machine):
         debs = None
@@ -271,7 +271,7 @@ class ImageBuilder:
                 if workflow.get('step') is None:
                     logger.info("IB: Building Base Image")
                     self._build_base_and_push(
-                        logger, tmp_folder, image_id, machine, force, push, path)
+                        logger, tmp_folder, image_id, machine, force, push)
                 else:
                     logger.info("IB: Building Image " + str(image_id))
                     self._build_image_and_push(

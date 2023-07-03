@@ -8,6 +8,7 @@ cr_passwd=$6
 build_command=$7
 force=$8
 push=$9
+echo "Force: $force, Push: $push"
 if [ "$force" == "True" ]; then
     extra_arg="--no-cache"
 fi

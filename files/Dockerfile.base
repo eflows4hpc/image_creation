@@ -10,4 +10,5 @@ RUN apt-get update && apt-get install -y openjdk-8-jdk python3-dev uuid-runtime 
 RUN apt-get update && apt-get install -y zlib1g-dev pkgconf bzip2 ncurses-dev openssl cmake tar libreadline-dev uuid-dev sqlite3 libxml2-dev && apt-get clean all && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y cpio && apt-get clean all && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y python-is-python3 && apt-get clean all && rm -rf /var/lib/apt/lists/*
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN cd /usr/lib/jvm/ && ln -s java-1.8.0-openjdk-* java-8
+ENV JAVA_HOME /usr/lib/jvm/java-8/

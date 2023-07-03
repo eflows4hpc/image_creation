@@ -1,9 +1,10 @@
 {
     "machine": {
-         "platform": "linux/amd64", "architecture": "sandybridge", "container_engine": "singularity" 
+         "platform": "linux/amd64", "architecture": "skylake", "container_engine": "singularity" 
          },
     "workflow":"rom_pillar_I", 
     "step_id" :"reduce_order_model", 
-    "force": "false"
+    "version" : "v2",
+    "force": "false",
     "push": "false"
 }
