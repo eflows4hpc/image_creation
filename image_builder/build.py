@@ -42,8 +42,7 @@ class ImageBuilder:
             self.software_repository = sr
         print("Software Repo: " + str(self.software_repository))
         self.spack_cfg = builder_cfg['spack_cfg']
-        self.base_image = self.container_registry["images_prefix"] + \
-            builder_cfg['base_image']
+        self.base_image = builder_cfg['base_image']
         self.images_location = os.path.join(
             builder_cfg["tmp_folder"], "images")
         if not os.path.exists(self.images_location):
@@ -176,8 +175,8 @@ class ImageBuilder:
         build_command = self._get_builder(machine)
 
         command = [self.builder_script, image_id, tmp_folder, machine['platform'],
-                   self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command, str(force), str(push)]
-        logger.info("Running build")
+                   str(self.container_registry['url']), str(self.container_registry['user']), str(self.container_registry['token']), build_command, str(force), str(push)]
+        logger.info("Running build "+  str(command))
         utils.run_commands([' '.join(command)],
                            logger=logger, check_error=True)
         # print("Removing tmp_folder")
@@ -189,23 +188,31 @@ class ImageBuilder:
         shutil.copy(self.dockerfile_base, dockerfile)
         build_command = self._get_builder(machine)
         command = [self.builder_script, image_id, tmp_folder, machine['platform'],
-                   self.container_registry['url'], self.container_registry['user'], self.container_registry['token'], build_command, str(force), str(push)]
+                   str(self.container_registry['url']), str(self.container_registry['user']), str(self.container_registry['token']), build_command, str(force), str(push)]
         logger.info("Running build " + str(command))
         utils.run_commands([' '.join(command)], logger=logger)
 
     def _to_singularity(self, logger, image_id, singularity_image_path, built):
-        env = os.environ.copy()
-        env['SINGULARITY_DOCKER_USERNAME'] = self.container_registry['user']
-        env['SINGULARITY_DOCKER_PASSWORD'] = self.container_registry['token']
+        if self.container_registry['user'] is None:
+            env = os.environ.copy()
+        else:
+            env = os.environ.copy()
+            env['SINGULARITY_DOCKER_USERNAME'] = self.container_registry['user']
+            env['SINGULARITY_DOCKER_PASSWORD'] = self.container_registry['token']
+        
         logger.info("Running singularity conversion for image " +
                     str(singularity_image_path))
         logger.info("Environ: " + str(env))
+        
         if os.path.exists(singularity_image_path):
             os.remove(singularity_image_path)
         if built:
             source = 'docker-daemon://' + image_id
         else:
-            source = 'docker://' + image_id
+            if self.container_registry['user'] is None:
+                source = 'docker-daemon://' + image_id
+            else:
+                source = 'docker://' + image_id
         if self.singularity_sudo:
             command = ['sudo', 'singularity', 'build',
                        singularity_image_path, source]
@@ -256,11 +263,25 @@ class ImageBuilder:
                 logger.info("IB: Checking if image " + image_id + " exists")
 
                 client = docker.from_env()
-                auth_config = dict(
-                    username=self.container_registry['user'], password=self.container_registry['token'])
+                registry_url=self.container_registry['url']
                 try:
-                    rd = client.images.get_registry_data(image_id, auth_config)
-                    logger.info("IB:Image already in registry. Nothing to do.")
+                    if registry_url is None:
+                        if push:
+                            raise Exception("Push is selected but no registry url defined")
+                        rd= client.images.get(image_id)
+                        logger.info("IB:Image already in the localhost. Nothing to do.")
+                    else:
+                        username=self.container_registry['user']
+                        if username is None:
+                            auth_config = None
+                        else:
+                            auth_config = dict(
+                            username=username, password=self.container_registry['token'])
+                        rd = client.images.get_registry_data(image_id, auth_config)
+                        logger.info("IB:Image already in registry. Nothing to do.")
+                except docker.errors.ImageNotFound as ex:
+                    logger.info("IB:Image not found: " + str(ex))
+                    rd = None
                 except docker.errors.NotFound as ex:
                     logger.info("IB:Image not found: " + str(ex))
                     rd = None

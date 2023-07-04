@@ -2,8 +2,8 @@
     "machine": {
          "platform": "linux/amd64", "architecture": "skylake", "container_engine": "singularity" 
          },
-    "workflow":"rom_pillar_I", 
-    "step_id" :"reduce_order_model", 
+    "workflow":"minimal_workflow", 
+    "step_id" :"wordcount", 
     "version" : "v2",
     "force": "false",
     "push": "false"

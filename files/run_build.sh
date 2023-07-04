@@ -13,7 +13,11 @@ if [ "$force" == "True" ]; then
     extra_arg="--no-cache"
 fi
 cd $tmpdir
-echo ${cr_passwd} | docker login ${cont_registry}  --username ${cr_username} --password-stdin
+if [ "${cont_registry}" == "None" ]; then
+    echo "Note: No Container registry specified."
+else
+    echo ${cr_passwd} | docker login ${cont_registry}  --username ${cr_username} --password-stdin
+fi 
 if [ "${build_command}" == "buildx" ]; then 
     if [ "$push" == "True" ]; then
         push_flag="--push"
