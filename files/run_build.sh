@@ -22,7 +22,7 @@ if [ "${build_command}" == "buildx" ]; then
     if [ "$push" == "True" ]; then
         push_flag="--push"
     else 
-        push_flag="--save"
+        push_flag="--load"
     fi
     echo "docker ${build_command} build --progress plain --builder mybuilder ${extra_arg} --platform ${platform} ${push_flag} --rm -t ${image_id} -f Dockerfile ."
     docker ${build_command} build --progress plain --builder mybuilder ${extra_arg} --platform ${platform} ${push_flag} --rm -t ${image_id} -f Dockerfile .
