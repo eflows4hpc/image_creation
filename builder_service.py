@@ -29,6 +29,8 @@ CAPTCHA_WEBSITE_KEY= configuration.captcha_web_site_key
 CAPTCHA_SERVER_KEY= configuration.captcha_site_key
 builder = ImageBuilder(configuration.repositories_cfg, configuration.build_cfg, configuration.registry_cfg)
 
+app.url_map.strict_slashes = False
+
 db = SQLAlchemy(app)
 #db.session().expire_on_commit = False
 #Basic Auth for API
