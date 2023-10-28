@@ -91,6 +91,7 @@ class ImageBuilder:
     def _update_configuration(self, workflow_folder_path, machine):
         debs = None
         pips = None
+        pip_reqs_path = os.path.join(workflow_folder_path, "requirements.txt")
         environment = {}
         import yaml
         with open(os.path.join(workflow_folder_path, "eflows4hpc.yaml"), 'r') as file:
@@ -99,6 +100,8 @@ class ImageBuilder:
             debs = eflows_environment['apt']
         if 'pip' in eflows_environment:
             pips = eflows_environment['pip']
+        elif os.path.exists(pip_reqs_path): 
+            pips = ["-r", pip_reqs_path]
         if 'spack' in eflows_environment:
             environment['spack'] = eflows_environment['spack']
             if 'architecture' in machine:
