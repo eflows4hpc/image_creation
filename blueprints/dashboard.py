@@ -65,7 +65,7 @@ def run_build():
     try:
         machine = {}
         machine['platform'] = request.form.get('platform')
-        machine['architecture'] = request.form.get('architecture').strip()
+        machine['architecture'] = request.form.get('cpu_architecture').strip()
         machine['container_engine'] = request.form.get('container_engine')
         machine['mpi'] = request.form.get('mpi').strip()
         machine['gpu'] = request.form.get('gpu').strip()
@@ -80,7 +80,7 @@ def run_build():
         return redirect(url_for('dashboard.get_build', id=build_id))
     except Exception as e:
         flash("Error submitting request" + str(e))
-        return render_template('request.html', form=request.form)
+        return render_template('request.html', architectures=SPACK_ARCHITECTURES, form=request.form)
 
 
 @dashboard.route('/images')
