@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, Response
 from flask_login import login_required, current_user
 from builder_service import db, Build, Image, User, build_image, get_build_logs_path, remove_build
+from image_builder.utils import SPACK_ARCHITECTURES
 import time
 
 dashboard = Blueprint('dashboard', __name__)
@@ -55,7 +56,7 @@ def delete_build(id):
 @dashboard.route('/builds/new')
 @login_required
 def new_build():
-    return render_template('request.html')
+    return render_template('request.html', architectures=SPACK_ARCHITECTURES)
 
 
 @dashboard.route('/builds/new', methods=['POST'])

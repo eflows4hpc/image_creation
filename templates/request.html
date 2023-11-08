@@ -29,9 +29,13 @@
                     </div>
                 </div>
                 <div class="field">
-                    <div class="control">
-                        <input required  class="input is-large" type="" name="architecture" placeholder="Processor Architecture">
-                    </div>
+                    <input list="architecture" name="architecture" placeholder="-- Processor Architecture --" required>
+                    <datalist id="architecture">
+                        <option value="-- Processor Architecture --" label="-- Processor Architecture --"></option>
+                        {% for architecture in architectures %}
+                            <option value="{{ architecture }}" label="{{ architecture }}"></option>
+                        {% endfor %}
+                    </datalist>
                 </div>
                 <div class="field">
                     <div class="select is-large">
