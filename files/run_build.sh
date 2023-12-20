@@ -19,19 +19,15 @@ else
     echo ${cr_passwd} | docker login ${cont_registry}  --username ${cr_username} --password-stdin
 fi 
 if [ "${build_command}" == "buildx" ]; then 
-    if [ "$push" == "True" ]; then
-        push_flag="--push"
-    else 
-        push_flag="--load"
-    fi
+    push_flag="--load"
     echo "docker ${build_command} build --progress plain --builder mybuilder ${extra_arg} --platform ${platform} ${push_flag} --rm -t ${image_id} -f Dockerfile ."
     docker ${build_command} build --progress plain --builder mybuilder ${extra_arg} --platform ${platform} ${push_flag} --rm -t ${image_id} -f Dockerfile .
 else
     echo "docker ${build_command} ${extra_arg} --platform ${platform} --rm -t ${image_id} -f Dockerfile ."
     docker ${build_command} ${extra_arg} --platform ${platform} --rm -t ${image_id} -f Dockerfile .
-    if [ "$push" == "True" ]; then
-       docker push ${image_id}
-    fi
+fi
+if [ "$push" == "True" ]; then
+    docker push ${image_id}
 fi
 
 

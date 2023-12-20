@@ -26,3 +26,5 @@ SHELL ["/bin/bash", "--login", "-c"]
 
 RUN echo "Installing pip packages" && source /etc/profile.d/z10_spack_environment.sh && %PIP_INSTALL%
 
+ENTRYPOINT ["/bin/bash", "--rcfile", "/etc/profile", "-l", "-c", "$*", "--" ]
+CMD [ "/bin/bash" ]
