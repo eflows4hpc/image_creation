@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, abort, g
 from builder_service import build_image, get_build, auth
-
+from image_builder.utils import check_bool
 api = Blueprint('api', __name__)
 
 @api.route('/build/', methods= ['POST'])
@@ -10,14 +10,8 @@ def build():
     print("Request received: " + str(content))
     
     try:
-        if 'force' in content:
-            force = content['force']
-            if isinstance(force, str):
-                force = force.lower() == 'true'
-            elif not isinstance(force, bool):
-                abort(400, "Bad request: force should be True or False" + str(e))
-        else :
-            force = False
+        force = check_bool(content, 'force', False)
+        push = check_bool(content, 'push', True)
         machine = content['machine']
         workflow = content['workflow']
         step_id = content['step_id']
@@ -25,7 +19,7 @@ def build():
             version = content['version']
         else:
             version = 'latest'
-        build_id = build_image(workflow, step_id, version, machine, force, g.user)
+        build_id = build_image(workflow, step_id, version, machine, force, push, g.user)
         return jsonify({"id" : build_id})
     except KeyError as e:
         abort(400, "Bad request: Key error" + str(e))

@@ -4,7 +4,7 @@
          },
     "workflow":"minimal_workflow", 
     "step_id" :"wordcount", 
-    "version" : "v2",
+    ""path" :"/wr/wordcount/",,
     "force": "true",
     "push": "false"
 }

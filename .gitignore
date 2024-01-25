@@ -53,6 +53,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# VSCode
+.vscode
+
 # Translations
 *.mo
 *.pot
@@ -62,6 +65,7 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+db.sqlite
 
 # Flask stuff:
 instance/

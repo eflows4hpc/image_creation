@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, Response
 from flask_login import login_required, current_user
 from builder_service import db, Build, Image, User, build_image, get_build_logs_path, remove_build
+from image_builder.utils import SPACK_ARCHITECTURES
 import time
 
 dashboard = Blueprint('dashboard', __name__)
@@ -55,7 +56,7 @@ def delete_build(id):
 @dashboard.route('/builds/new')
 @login_required
 def new_build():
-    return render_template('request.html')
+    return render_template('request.html', architectures=SPACK_ARCHITECTURES)
 
 
 @dashboard.route('/builds/new', methods=['POST'])
@@ -64,18 +65,22 @@ def run_build():
     try:
         machine = {}
         machine['platform'] = request.form.get('platform')
-        machine['architecture'] = request.form.get('architecture')
+        machine['architecture'] = request.form.get('cpu_architecture').strip()
         machine['container_engine'] = request.form.get('container_engine')
-        machine['mpi'] = request.form.get('mpi')
-        machine['gpu'] = request.form.get('gpu')
-        wf_name = request.form.get('wf_name')
-        wf_step = request.form.get('wf_step')
-        version = 'latest'
+        machine['mpi'] = request.form.get('mpi').strip()
+        machine['gpu'] = request.form.get('gpu').strip()
+        wf_name = request.form.get('wf_name').strip()
+        wf_step = request.form.get('wf_step').strip()
+        version = request.form.get('wf_version').strip()
+        if version is None or version == "" :
+            version = 'latest'
         force = False
-        build_id = build_image (wf_name, wf_step, version, machine, force, current_user)
+        push = True
+        build_id = build_image (wf_name, wf_step, version, machine, force, push, current_user)
         return redirect(url_for('dashboard.get_build', id=build_id))
     except Exception as e:
-        return render_template('request.html', form=request.form)
+        flash("Error submitting request" + str(e))
+        return render_template('request.html', architectures=SPACK_ARCHITECTURES, form=request.form)
 
 
 @dashboard.route('/images')
