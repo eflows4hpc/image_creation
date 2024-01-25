@@ -23,6 +23,7 @@ RUN export VERSION=3.10.0 && wget https://github.com/sylabs/singularity/releases
     cd .. && rm -r singularity-ce-${VERSION}* 
 
 RUN git clone https://github.com/eflows4hpc/image_creation.git /image_creation && mv /image_creation/config/configuration.docker.py /image_creation/config/configuration.py && pip3 --no-cache-dir install -r /image_creation/requirements-library.txt
+RUN git clone https://github.com/eflows4hpc/software-catalog.git /software-catalog
 
 ENV PYTHONPATH=/image_creation:$PYTHONPATH
 

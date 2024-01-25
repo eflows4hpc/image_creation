@@ -14,7 +14,7 @@ repositories_cfg = {
 build_cfg = {
     "tmp_folder":"/tmp", 
     "builder_home": "/image_creation/", 
-    "base_image": "ghcr.io/eflows4hpc/spack_base:0.19.2", 
+    "base_image": "ghcr.io/eflows4hpc/spack_base:0.20.1", 
     "dockerfile": "Dockerfile.spack", 
     "spack_cfg":"/software-catalog/cfg",
     "max_concurrent_builds" : 3,
