@@ -6,21 +6,13 @@ COPY %APPDIR% /%APPDIR%
 COPY software-catalog /software-catalog
 COPY .spack /.spack
 COPY packages /packages
+COPY build_spack.sh /.spack/build_spack.sh
 
 WORKDIR /packages
 
 RUN echo "Installing apt-get packages" && %APTGET_INSTALL%
 
-RUN [ ! /%APPDIR%/spack.yaml ] && echo "No spack environment to install" || echo "Installing spack packages" && spack -C /.spack find && cat /%APPDIR%/spack.yaml \
-    && spack -C /.spack compiler find && spack -C /.spack external find && spack -C /.spack -e /%APPDIR% install --fail-fast --no-checksum --keep-stage -j2 \
-    && [ -f /%APPDIR%/post_inst.sh ] && sh /%APPDIR%/post_inst.sh || echo "Nothing else to do"; spack gc -y
-    # && spack -C /.spack mirror add binary_mirror_dev https://binaries.spack.io/develop \
-    # && spack -C /.spack buildcache keys --install --trust \
-
-
-RUN  spack -C /.spack env activate /%APPDIR% --sh >> /etc/profile.d/z10_spack_environment.sh && \
-    echo "export PYTHONPATH=/opt/view/local/lib/python3.10/site-packages/:\$PYTHONPATH" >> /etc/profile.d/z10_spack_environment.sh && \
-    echo "export PATH=/usr/local/bin/:\$PATH" >> /etc/profile.d/z10_spack_environment.sh
+RUN sh /.spack/build_spack.sh /%APPDIR% 3.10
 
 SHELL ["/bin/bash", "--login", "-c"] 
 
