@@ -91,7 +91,9 @@ def get_images():
 
 @dashboard.route('/images/delete')
 @login_required
-def delete_image(id, filename=None):
+def delete_image():
+    id = request.args.get('id')
+    filename = request.args.get('filename')
     if id is None:
         flash("Id is None")
     else : 
