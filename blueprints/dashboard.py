@@ -91,7 +91,7 @@ def get_images(clean=True):
     images = Image.query.all()
     return render_template('images.html', images=images)
 
-@dashboard.route('/images/delete', methods=['DELETE'])
+@dashboard.route('/images/delete')
 @login_required
 def delete_image():
     id = request.args.get('id')

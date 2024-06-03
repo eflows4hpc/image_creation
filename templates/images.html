@@ -27,7 +27,7 @@
           <td>{{image.filename}}</td>
           <td>
             <a class="button is-small" href="images/download/{{image.filename}}"><i class="fas fa-download"></i></a>
-            <a class="button is-small" data-confirm="Are you sure?" data-method="delete" href="{{url_for('dashboard.delete_image', id=image.id, filename=image.filename)}}"><i class="fas fa-trash-alt"></i></a>
+            <a class="button is-small" href="{{url_for('dashboard.delete_image', id=image.id, filename=image.filename)}}"><i class="fas fa-trash-alt"></i></a>
           </td>
           {% else %}
           <td></td>
