@@ -89,14 +89,17 @@ def get_images():
     images = Image.query.all()
     return render_template('images.html', images=images)
 
-@dashboard.route('/images/delete', methods=['DELETE'])
+@dashboard.route('/images/delete')
 @login_required
 def delete_image(id, filename=None):
-     remove_image(id, filename)
-     image = db.session.query(Image).get(id)
-     db.session.delete(image)
-     db.session.commit()
-     return redirect(url_for('dashboard.get_builds'))
+    if id is None:
+        flash("Id is None")
+    else : 
+        remove_image(id, filename)
+        image = db.session.query(Image).get(id)
+        db.session.delete(image)
+        db.session.commit()
+    return redirect(url_for('dashboard.get_images'))
 
 @dashboard.route('/account/token', methods=['POST'])
 @login_required
