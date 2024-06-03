@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, Response
+from flask import Blueprint, render_template, request, flash, redirect, url_for, Response, session
 from flask_login import login_required, current_user
 from builder_service import db, Build, Image, User, build_image, get_build_logs_path, remove_build, remove_image
 from image_builder.utils import SPACK_ARCHITECTURES
@@ -85,7 +85,9 @@ def run_build():
 
 @dashboard.route('/images')
 @login_required
-def get_images():
+def get_images(clean=True):
+    if clean:
+        session.pop('_flashes', None)
     images = Image.query.all()
     return render_template('images.html', images=images)
 
@@ -104,7 +106,7 @@ def delete_image():
         image = db.session.query(Image).get(id)
         db.session.delete(image)
         db.session.commit()
-    return get_images()
+    return get_images(clean=False)
 
 @dashboard.route('/account/token', methods=['POST'])
 @login_required
