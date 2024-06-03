@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, Response
 from flask_login import login_required, current_user
-from builder_service import db, Build, Image, User, build_image, get_build_logs_path, remove_build
+from builder_service import db, Build, Image, User, build_image, get_build_logs_path, remove_build, remove_image
 from image_builder.utils import SPACK_ARCHITECTURES
 import time
 
@@ -89,6 +89,15 @@ def get_images():
     images = Image.query.all()
     return render_template('images.html', images=images)
 
+@dashboard.route('/builds/<id>/delete')
+@login_required
+def delete_image(id, filename=None):
+     
+     remove_image(id, filename)
+     image = db.session.query(Image).get(id)
+     db.session.delete(image)
+     db.session.commit()
+     return redirect(url_for('dashboard.get_builds'))
 @dashboard.route('/account/token', methods=['POST'])
 @login_required
 def generate_token():

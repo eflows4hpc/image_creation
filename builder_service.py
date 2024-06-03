@@ -287,6 +287,9 @@ def get_build_logs_path(id):
 def remove_build(id):
     return builder.delete_build(id)
 
+def remove_image(id, filename):
+    return builder.delete_image(id, filename)
+
 def get_build(id):
     return Build.query.get(id)
 

@@ -354,3 +354,15 @@ class ImageBuilder:
         print("Removing tmp_folder")
         command = ["rm", "-rf", tmp_folder]
         utils.run_commands([' '.join(command)])
+    
+    def delete_build(self, image_id, filename):
+        commands = []
+        if filename:
+            sing_filename = self.get_filename(filename)
+            print("Removing sif file" + sing_filename)
+            command = ["rm", "-f", sing_filename]
+            commands.append(' '.join(command))
+        print("Deleting docker image " + image_id)
+        command = ["docker", "rmi", image_id]
+        commands.append(' '.join(command))
+        utils.run_commands(commands)
