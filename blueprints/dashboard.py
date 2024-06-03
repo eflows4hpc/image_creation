@@ -104,7 +104,7 @@ def delete_image():
         image = db.session.query(Image).get(id)
         db.session.delete(image)
         db.session.commit()
-    return redirect(url_for('dashboard.get_images'))
+    return get_images()
 
 @dashboard.route('/account/token', methods=['POST'])
 @login_required
