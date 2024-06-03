@@ -89,15 +89,15 @@ def get_images():
     images = Image.query.all()
     return render_template('images.html', images=images)
 
-@dashboard.route('/builds/<id>/delete')
+@dashboard.route('/images/<id>/delete')
 @login_required
 def delete_image(id, filename=None):
-     
      remove_image(id, filename)
      image = db.session.query(Image).get(id)
      db.session.delete(image)
      db.session.commit()
      return redirect(url_for('dashboard.get_builds'))
+
 @dashboard.route('/account/token', methods=['POST'])
 @login_required
 def generate_token():
