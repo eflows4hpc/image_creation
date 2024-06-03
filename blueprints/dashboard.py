@@ -89,7 +89,7 @@ def get_images():
     images = Image.query.all()
     return render_template('images.html', images=images)
 
-@dashboard.route('/images/<id>/delete')
+@dashboard.route('/images/delete', methods=['DELETE'])
 @login_required
 def delete_image(id, filename=None):
      remove_image(id, filename)
