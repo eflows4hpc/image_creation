@@ -355,7 +355,7 @@ class ImageBuilder:
         command = ["rm", "-rf", tmp_folder]
         utils.run_commands([' '.join(command)])
     
-    def delete_build(self, image_id, filename):
+    def delete_image(self, image_id, filename):
         commands = []
         if filename:
             sing_filename = self.get_filename(filename)
