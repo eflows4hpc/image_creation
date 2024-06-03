@@ -97,7 +97,10 @@ def delete_image():
     if id is None:
         flash("Id is None")
     else : 
-        remove_image(id, filename)
+        try:
+            remove_image(id, filename)
+        except Exception as e:
+            flash("Error deleting image" + str(e))
         image = db.session.query(Image).get(id)
         db.session.delete(image)
         db.session.commit()
