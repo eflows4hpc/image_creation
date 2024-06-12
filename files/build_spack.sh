@@ -16,7 +16,10 @@ fi
 if [ -f ${APPDIR}/post_inst.sh ]; then
     sh ${APPDIR}/post_inst.sh 
 fi
-spack gc -y
+spack -C /.spack gc -y
+spack -C /.spack clean
+rm -rf /opt/spack/var/spack/cache/*
+rm -rf /tmp/root/*
 if [ -f "${APPDIR}/spack.yaml" ]; then
     spack -C /.spack env activate $APPDIR --sh >> /etc/profile.d/z10_spack_environment.sh
 fi
