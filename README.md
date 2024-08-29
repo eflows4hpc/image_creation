@@ -300,7 +300,7 @@ Finally, once you enter the container (step 2), you need to create a builder for
 
 ```
 root@b7c3d750f22f:/# docker buildx create --name mybuilder
-
+```
 
 ## Debugging the Spack packages
 
