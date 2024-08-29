@@ -259,6 +259,49 @@ Saving to: ‘reduce_order_model_sandybridge.sif’
 reduce_order_model_sandybridge.sif        0%[                          ]   4.35M   550KB/s    eta 79m 0s
 ```
 
+
+## Instructions to run Container Image Creation on your local computer
+
+Before running be sure you have the docker service running in your computer
+
+1. Clone the software catalogue
+
+```
+user@localhost:~> git clone https://github.com/eflows4hpc/software-catalog.git
+```
+
+2. Run the docker container image creation mounting the Software Catalogue location and the docker socket
+```
+user@localhost:~> docker run -v $PWD/software-catalog:/software-catalog \
+           -v /var/run/docker.sock:/var/run/docker.sock \
+           -it ghcr.io/eflows4hpc/image_creation:0.0.3 /bin/bash
+```
+
+
+3. Modify the file *image_creation/test_request.json* with the HPC site properties and the workflow to create. Then, execute the following command to start the image creation. 
+```
+root@b7c3d750f22f:/# python3 image_creation/cic_builder.py --request=image_creation/test_request.json 
+```
+
+### Building images different from the host platform
+If you want to create container images from another platform than your host (e.g. you have an arm64 (M1) and want to run for amd64) you need to run an extra config step to setup qemu-user-static and binfmt-support packages in your OS. 
+For instance, in an Ubuntu distribution, it can be done with the following command. 
+```
+sudo apt-get install qemu binfmt-support qemu-user-static 
+```
+In OSX you must enable the experimental features in the Docker engine.
+
+Once installed run the following command to enable the multi-platform environment
+
+```
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes # This step will execute the registering
+```
+Finally, once you enter the container (step 2), you need to create a builder for docker buildx
+
+```
+root@b7c3d750f22f:/# docker buildx create --name mybuilder
+
+
 ## Debugging the Spack packages
 
 The Container Image Creation uses Spack to install HPC software. Testing the installation of the whole workflow dependencies can take some time. So debugging new packages with the Container Image Creation will be difficult due to the long times to get feedback. For reducing this time, we provide a set of commands to set-up a Docker environment to test the installation in the same way that the CIC does in the service.
